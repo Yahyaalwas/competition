@@ -1,193 +1,150 @@
-# Time Series Forecasting System for Official Statistical Indicators
+# GCC Youth Employment Intelligence Platform
 
-A reproducible pipeline for forecasting population and economic indicators with interpretable outputs and Arabic decision-support explanations.
+> **An AI-powered statistical intelligence and decision-support platform for forecasting youth employment trends and supporting Gulf policy planning.**
 
-## Features
+Built for GCC policymakers, statistical agencies, and government strategists who need explainable AI forecasting, bilingual executive reporting, and interactive scenario simulation — all in one platform.
 
-- **Multiple Models**: Baseline (Naive, Seasonal Naive, Moving Average), ARIMA/SARIMAX, LightGBM
-- **Robust Backtesting**: Expanding window cross-validation with multiple folds
-- **Uncertainty Quantification**: Prediction intervals for all models
-- **Explainability**: Trend/seasonality decomposition, feature importance, Arabic narrative reports
-- **Flexible Data**: Supports monthly and yearly frequencies with optional external regressors
+---
 
-## Setup
+## Platform Overview
 
-### Using venv (recommended)
+The platform transforms raw employment indicators into actionable intelligence, combining rigorous time-series forecasting with AI-generated narrative analysis and interactive policy simulation.
+
+**Target countries:** Oman · Saudi Arabia · UAE · Qatar · Kuwait · Bahrain
+
+**Primary indicators:**
+- Youth Unemployment Rate (%)
+- Youth Labour Force Participation Rate (%)
+- Graduate Employment Rate (%)
+- Private Sector Employment Share (%)
+- Digital Sector Employment Growth (%)
+
+---
+
+## Key Capabilities
+
+### 🤖 AI Decision Intelligence
+Automatically generates bilingual (English + Arabic) executive reports from forecast outputs — including executive summaries, risk assessments, influencing factors, strategic recommendations, and forward-looking outlooks. Tone and framing are calibrated for government and ministerial audiences.
+
+### 📈 Multi-Model Forecasting Engine
+Rigorous expanding-window cross-validation selects the best-performing model from:
+- **Baseline models:** Naive, Seasonal Naive, Moving Average, Drift
+- **Statistical:** ARIMA / SARIMAX with automatic order selection (AIC)
+- **Machine learning:** LightGBM with quantile regression (80% prediction intervals)
+
+### ⚙️ Policy Scenario Simulator
+Interactive what-if modelling: adjust GDP growth, digital economy investment, education investment, labour market reform intensity, and population growth — and instantly see how the forecast changes with AI-generated impact interpretation.
+
+### 🔬 Explainability Center
+Transparent AI suitable for public-sector adoption:
+- Model performance comparison across all cross-validation folds
+- LightGBM feature importance rankings
+- Trend/seasonality decomposition
+- Prediction interval width analysis
+
+### 🌍 GCC Regional Intelligence
+- Six-country comparative dashboard with interactive heatmaps
+- Country rankings and GCC average benchmarking
+- Year-on-year change visualisation
+
+### 📝 Arabic Executive Reporting
+Downloadable Arabic reports with professional sections:
+- الملخص التنفيذي — Executive Summary
+- أبرز المؤشرات والرؤى — Key Insights
+- تحليل المخاطر — Risk Analysis
+- التوصيات الاستراتيجية — Strategic Recommendations
+- النظرة المستقبلية — Forecast Outlook
+
+---
+
+## Quickstart
+
+### 1. Install dependencies
 
 ```bash
-# Create virtual environment
-python -m venv venv
-
-# Activate (Linux/Mac)
-source venv/bin/activate
-
-# Activate (Windows)
-venv\Scripts\activate
-
-# Install dependencies
 pip install -r requirements.txt
 ```
 
-### Using uv (faster alternative)
-
-```bash
-uv venv
-source .venv/bin/activate  # or .venv\Scripts\activate on Windows
-uv pip install -r requirements.txt
-```
-
-## Quick Start
-
-### Web GUI (Easiest)
-
-After setup, launch the web interface:
+### 2. Launch the dashboard
 
 ```bash
 streamlit run app.py
 ```
 
-Then open http://localhost:8501 in your browser. You can:
-- Upload CSV files via drag & drop
-- Configure frequency, horizon, and confidence level
-- View interactive plots and download results
+Then open [http://localhost:8501](http://localhost:8501).
 
-### Command Line
+The platform loads instantly with built-in GCC data — no CSV upload required.
 
-#### 1. Generate Sample Data
+---
+
+## Dashboard Pages
+
+| Page | Description |
+|------|-------------|
+| 🌍 GCC Overview | Six-country comparative dashboard with heatmaps and rankings |
+| 🔍 Country Explorer | Deep-dive into a single country across all indicators |
+| 📈 Forecast Center | Run AI forecasts with model selection and confidence intervals |
+| 🤖 AI Insights | Bilingual executive intelligence report with policy recommendations |
+| ⚙️ Scenario Simulator | Interactive policy lever simulation with elasticity-based impact modelling |
+| 🔬 Explainability | Model diagnostics, feature importance, decomposition |
+
+---
+
+## CLI Pipeline (Optional)
+
+For batch processing or integration into automated workflows:
 
 ```bash
+# Generate sample datasets
 python scripts/make_sample_data.py
-```
 
-This creates sample datasets in `data/`:
-- `population_monthly.csv` - Monthly population indicator
-- `gdp_yearly.csv` - Yearly GDP with regressors
-
-### 2. Train Models
-
-```bash
-# Monthly data, 12-month forecast horizon
+# Train models and select best via backtesting
 python -m src.main train --data data/population_monthly.csv --freq M --horizon 12
 
-# Yearly data, 5-year forecast horizon
-python -m src.main train --data data/gdp_yearly.csv --freq Y --horizon 5
-```
-
-### 3. Generate Forecasts
-
-```bash
+# Generate forecast
 python -m src.main forecast --data data/population_monthly.csv --freq M --horizon 12
-```
 
-### 4. Generate Full Report
-
-```bash
+# Full pipeline with Arabic report
 python -m src.main report --data data/population_monthly.csv --freq M --horizon 12
 ```
 
-## CLI Commands
+---
 
-| Command | Description |
-|---------|-------------|
-| `train` | Train all models and perform backtesting to select the best |
-| `forecast` | Generate forecasts using the best model |
-| `report` | Full pipeline: train, forecast, and generate Arabic explanation report |
+## Architecture
 
-### Common Options
-
-| Option | Description | Default |
-|--------|-------------|---------|
-| `--data` | Path to CSV file | Required |
-| `--freq` | Frequency: `M` (monthly) or `Y` (yearly) | `M` |
-| `--horizon` | Number of periods to forecast | `12` |
-| `--config` | Path to config file | `config.yaml` |
-| `--output-dir` | Output directory | `outputs/` |
-
-## Data Format
-
-### Minimum Required Columns
-
-| Column | Type | Description |
-|--------|------|-------------|
-| `date` | string/date | Date in ISO format (YYYY-MM-DD or YYYY-MM) |
-| `value` | numeric | The indicator value |
-
-### Optional Regressor Columns
-
-Any additional numeric columns will be treated as external regressors (e.g., GDP, unemployment, inflation).
-
-Example:
-```csv
-date,value,gdp_growth,unemployment
-2020-01,1000,2.5,5.2
-2020-02,1050,2.6,5.1
-...
+```
+├── app.py                  # Streamlit dashboard (6 pages)
+├── config.yaml             # Model and pipeline configuration
+├── requirements.txt
+├── src/
+│   ├── gcc_data.py         # Built-in GCC dataset (2015–2024, 5 indicators × 6 countries)
+│   ├── intelligence.py     # AI decision intelligence & bilingual narrative engine
+│   ├── scenario.py         # Elasticity-based scenario simulation
+│   ├── data.py             # Data loading, cleaning, validation
+│   ├── evaluate.py         # Expanding-window cross-validation backtesting
+│   ├── explain.py          # Decomposition and explainability utilities
+│   ├── plotting.py         # Matplotlib plotting helpers (CLI pipeline)
+│   ├── main.py             # Click CLI entry point
+│   └── models/
+│       ├── baselines.py    # Naive, Seasonal Naive, Moving Average, Drift
+│       ├── arima_model.py  # ARIMA/SARIMAX with AIC-based auto order selection
+│       └── ml_model.py     # LightGBM with quantile regression
+└── scripts/
+    └── make_sample_data.py # Sample data generator
 ```
 
-## Outputs
+---
 
-All outputs are saved to `outputs/` (or custom `--output-dir`):
+## Societal Impact
 
-| File | Description |
-|------|-------------|
-| `best_model.pkl` | Serialized best model |
-| `forecast.csv` | Forecasts with prediction intervals |
-| `backtest_results.csv` | Cross-validation metrics per fold |
-| `model_comparison.csv` | Model performance comparison |
-| `forecast_plot.png` | Visualization of historical data and forecasts |
-| `residuals_plot.png` | Residual diagnostics |
-| `decomposition_plot.png` | Trend/seasonality decomposition |
-| `report_ar.txt` | Arabic decision-support report |
+Youth unemployment is one of the GCC's most pressing structural challenges. This platform equips policymakers with:
 
-## Configuration
+- **Evidence-based forecasts** grounded in rigorous statistical validation
+- **Scenario planning** to test the impact of policy interventions before implementation
+- **Transparent AI** with explainability built in — suitable for public-sector governance requirements
+- **Arabic-first reporting** aligned with the language of government decision-making
 
-Edit `config.yaml` to customize:
-
-```yaml
-backtesting:
-  min_train_size: 24  # Minimum training observations
-  n_folds: 3          # Number of CV folds
-
-metrics:
-  primary: smape      # Primary selection metric
-  secondary: rmse     # Secondary selection metric
-
-models:
-  arima:
-    auto_order: true
-    max_p: 5
-    max_q: 5
-  ml:
-    n_lags: 12
-    n_estimators: 100
-```
-
-## Model Details
-
-### Baselines
-- **Naive**: Last value repeated
-- **Seasonal Naive**: Value from same season last year
-- **Moving Average**: Rolling mean of last N periods
-
-### ARIMA/SARIMAX
-- Automatic order selection using AIC
-- Supports external regressors (SARIMAX)
-- Built-in prediction intervals
-
-### LightGBM
-- Lag features (configurable)
-- Rolling statistics
-- Quantile regression for prediction intervals
-- Feature importance available
-
-## Metrics
-
-| Metric | Description |
-|--------|-------------|
-| MAE | Mean Absolute Error |
-| RMSE | Root Mean Squared Error |
-| MAPE | Mean Absolute Percentage Error |
-| sMAPE | Symmetric MAPE (primary selection metric) |
+---
 
 ## License
 
