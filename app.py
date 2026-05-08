@@ -163,7 +163,46 @@ with st.sidebar:
     )
 
     st.markdown("---")
-    st.markdown('<div style="font-size:0.72rem; opacity:0.55; padding-top:0.5rem;">© 2025 GCC Statistical Intelligence Platform</div>', unsafe_allow_html=True)
+    st.markdown("---")
+
+    # ── Data source & refresh ─────────────────────────────────────────────────
+    from src.wb_data import get_metadata, is_cache_available
+    meta = get_metadata()
+    last_updated = meta.get("last_updated", "Not yet fetched")
+    cache_ok = is_cache_available()
+
+    st.markdown(
+        f'<div style="font-size:0.72rem; opacity:0.7; line-height:1.6;">'
+        f'<strong>Data source</strong><br>'
+        f'World Bank Open Data<br>'
+        f'<span style="opacity:0.8;">Last updated:<br>{last_updated}</span>'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    if st.button("🔄 Refresh Data", use_container_width=True, help="Re-fetch all indicators from World Bank API"):
+        with st.spinner("Fetching data from World Bank Open Data…"):
+            try:
+                gcc_data.refresh(force=True)
+                # Clear any cached forecasts that depend on the data
+                for k in list(st.session_state.keys()):
+                    if k in ("fc_results", "fc_meta"):
+                        del st.session_state[k]
+                st.success("Data refreshed successfully!")
+                st.rerun()
+            except Exception as exc:
+                st.error(f"Refresh failed: {exc}")
+
+    if not cache_ok:
+        st.warning("⚠ No local cache found. Click **Refresh Data** to fetch from World Bank.", icon="⚠️")
+
+    st.markdown(
+        '<div style="font-size:0.68rem; opacity:0.45; padding-top:0.8rem;">'
+        '© 2025 GCC Statistical Intelligence Platform'
+        '</div>',
+        unsafe_allow_html=True,
+    )
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Helpers
@@ -280,9 +319,32 @@ def _section(title: str) -> None:
 # ──────────────────────────────────────────────────────────────────────────────
 
 def page_gcc_overview():
+    from src.wb_data import get_metadata, is_cache_available
+    wb_meta = get_metadata()
+    src_label  = wb_meta.get("source", "World Bank Open Data")
+    src_url    = wb_meta.get("source_url", "https://data.worldbank.org")
+    updated_at = wb_meta.get("last_updated", "—")
+
     _banner(
         "🌍 GCC Youth Employment Intelligence Hub",
-        "Regional comparative analysis · Six-country dashboard · 2015–2024",
+        f"Regional comparative analysis · Six-country dashboard · 2010–2024 · Source: {src_label}",
+    )
+
+    if not is_cache_available():
+        st.warning(
+            "⚠ Local data cache not found. Use the **🔄 Refresh Data** button in the sidebar "
+            "to fetch real data from World Bank Open Data.",
+            icon="⚠️",
+        )
+        return
+
+    # ── Source attribution strip ──────────────────────────────────────────────
+    st.markdown(
+        f'<div style="font-size:0.75rem; color:#666; margin-bottom:0.8rem;">'
+        f'📡 <strong>Data:</strong> <a href="{src_url}" target="_blank">{src_label}</a> '
+        f'&nbsp;|&nbsp; Last fetched: {updated_at}'
+        f'</div>',
+        unsafe_allow_html=True,
     )
 
     ind = st.selectbox(

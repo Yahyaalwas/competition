@@ -1,229 +1,274 @@
 """
-Built-in GCC youth employment dataset (2015–2024).
+GCC youth employment data layer.
 
-Values are calibrated against ILO, World Bank, and GCC-STAT sources.
-Annual frequency; monthly interpolation available via get_monthly_series().
+Backed by real World Bank Open Data (via src.wb_data).  All functions
+return the same types as before — the rest of the codebase needs no changes.
+
+Data loading is lazy and cached in-process: the first call to any public
+function triggers a load from disk (or the API when no cache exists).
+
+Public API (unchanged signatures)
+----------------------------------
+COUNTRIES       : dict  — GCC country metadata (flag, code, capital, vision)
+INDICATORS      : dict  — indicator metadata (re-exported from wb_data)
+get_series      : (country, indicator) → pd.Series  annual, YS freq
+get_monthly_series : (country, indicator) → pd.Series  monthly, MS freq
+get_all_countries_df : (indicator) → pd.DataFrame  years × countries
+get_gcc_average  : (indicator) → pd.Series  GCC equal-weight mean
+get_latest_values: (indicator) → pd.Series  latest non-NaN value per country
+get_rankings     : (indicator) → pd.DataFrame  ranked table
+get_trend_stats  : (country, indicator) → dict
+refresh          : (force=True) → None  re-fetch all indicators from WB API
 """
 
-from typing import Dict, List, Optional
+import logging
+from typing import Dict, Optional
+
 import numpy as np
 import pandas as pd
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Metadata
-# ──────────────────────────────────────────────────────────────────────────────
+from src.wb_data import (
+    WB_COUNTRY_CODES,
+    WB_INDICATORS,
+    fetch_all,
+    get_metadata,
+    is_cache_available,
+    load_indicator,
+)
 
-YEARS: List[int] = list(range(2015, 2025))
+logger = logging.getLogger(__name__)
 
+# ── Re-export so callers can do `from src.gcc_data import INDICATORS` ─────────
+INDICATORS: Dict[str, dict] = WB_INDICATORS
+
+# ── Country metadata (display-only; not tied to WB data) ─────────────────────
 COUNTRIES: Dict[str, dict] = {
-    "Saudi Arabia": {"flag": "🇸🇦", "code": "SAU", "capital": "Riyadh",   "vision": "Vision 2030"},
-    "UAE":          {"flag": "🇦🇪", "code": "UAE", "capital": "Abu Dhabi", "vision": "UAE Centennial 2071"},
-    "Qatar":        {"flag": "🇶🇦", "code": "QAT", "capital": "Doha",      "vision": "Qatar National Vision 2030"},
-    "Kuwait":       {"flag": "🇰🇼", "code": "KWT", "capital": "Kuwait City","vision": "Kuwait Vision 2035"},
-    "Bahrain":      {"flag": "🇧🇭", "code": "BHR", "capital": "Manama",    "vision": "Bahrain Economic Vision 2030"},
-    "Oman":         {"flag": "🇴🇲", "code": "OMN", "capital": "Muscat",    "vision": "Oman Vision 2040"},
+    "Saudi Arabia": {"flag": "🇸🇦", "code": "SAU", "capital": "Riyadh",      "vision": "Vision 2030"},
+    "UAE":          {"flag": "🇦🇪", "code": "UAE", "capital": "Abu Dhabi",   "vision": "UAE Centennial 2071"},
+    "Qatar":        {"flag": "🇶🇦", "code": "QAT", "capital": "Doha",        "vision": "Qatar National Vision 2030"},
+    "Kuwait":       {"flag": "🇰🇼", "code": "KWT", "capital": "Kuwait City", "vision": "Kuwait Vision 2035"},
+    "Bahrain":      {"flag": "🇧🇭", "code": "BHR", "capital": "Manama",      "vision": "Bahrain Economic Vision 2030"},
+    "Oman":         {"flag": "🇴🇲", "code": "OMN", "capital": "Muscat",      "vision": "Oman Vision 2040"},
 }
 
-INDICATORS: Dict[str, dict] = {
-    "youth_unemployment_rate": {
-        "name": "Youth Unemployment Rate",
-        "name_ar": "معدل بطالة الشباب",
-        "unit": "%",
-        "description": "Percentage of youth (ages 15–24) in the labour force who are unemployed.",
-        "lower_is_better": True,
-        "target_range": (0, 10),
-    },
-    "labor_force_participation": {
-        "name": "Youth Labour Force Participation Rate",
-        "name_ar": "معدل مشاركة الشباب في سوق العمل",
-        "unit": "%",
-        "description": "Percentage of youth (ages 15–24) who are employed or actively seeking work.",
-        "lower_is_better": False,
-        "target_range": (60, 100),
-    },
-    "graduate_employment_rate": {
-        "name": "Graduate Employment Rate",
-        "name_ar": "معدل توظيف الخريجين",
-        "unit": "%",
-        "description": "Percentage of university graduates employed within 12 months of graduation.",
-        "lower_is_better": False,
-        "target_range": (80, 100),
-    },
-    "private_sector_share": {
-        "name": "Private Sector Employment Share",
-        "name_ar": "نسبة التوظيف في القطاع الخاص",
-        "unit": "%",
-        "description": "Share of employed youth working in the private sector.",
-        "lower_is_better": False,
-        "target_range": (50, 100),
-    },
-    "digital_sector_growth": {
-        "name": "Digital Sector Employment Growth",
-        "name_ar": "نمو التوظيف في القطاع الرقمي",
-        "unit": "%",
-        "description": "Year-on-year growth in employment in the digital and technology sectors.",
-        "lower_is_better": False,
-        "target_range": (10, 100),
-    },
-}
+# ── In-process data cache ─────────────────────────────────────────────────────
+_cache: Dict[str, pd.DataFrame] = {}   # indicator_key → raw year×country DF
+_loaded: bool = False
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Annual Data  (index = YEARS, i.e., 2015…2024)
-# ──────────────────────────────────────────────────────────────────────────────
-# Sources: ILO ILOSTAT, World Bank WDI, GCC-STAT, national statistical offices.
-# 2020 values reflect COVID-19 labour market disruptions.
 
-_RAW: Dict[str, Dict[str, List[float]]] = {
-    # ── Youth Unemployment Rate (%) ──────────────────────────────────────────
-    "youth_unemployment_rate": {
-        "Saudi Arabia": [30.3, 29.8, 28.5, 24.2, 28.0, 29.5, 27.9, 26.0, 23.7, 21.8],
-        "UAE":          [12.1, 11.8, 11.2, 10.6, 10.1, 11.5, 10.7,  9.8,  8.9,  8.1],
-        "Qatar":        [ 3.2,  3.0,  2.8,  2.6,  2.4,  2.7,  2.5,  2.3,  2.1,  1.9],
-        "Kuwait":       [22.5, 22.0, 21.5, 20.8, 20.2, 23.5, 22.1, 20.8, 19.5, 18.3],
-        "Bahrain":      [19.8, 19.2, 18.6, 17.9, 17.2, 20.1, 18.9, 17.5, 16.2, 15.1],
-        "Oman":         [17.2, 17.0, 16.5, 15.8, 15.1, 17.8, 16.5, 15.2, 13.9, 12.8],
-    },
-    # ── Youth Labour Force Participation Rate (%) ───────────────────────────
-    "labor_force_participation": {
-        "Saudi Arabia": [31.5, 33.2, 35.8, 38.5, 41.2, 37.8, 43.5, 47.2, 51.5, 55.8],
-        "UAE":          [68.5, 69.2, 70.5, 71.8, 73.2, 70.5, 73.8, 75.5, 77.2, 78.9],
-        "Qatar":        [78.2, 79.5, 80.8, 82.1, 83.5, 80.8, 83.2, 85.1, 86.8, 88.2],
-        "Kuwait":       [45.5, 46.2, 47.1, 48.3, 49.5, 46.8, 49.2, 51.5, 53.8, 56.1],
-        "Bahrain":      [52.8, 54.1, 55.5, 57.2, 58.8, 55.9, 58.5, 61.2, 63.8, 66.5],
-        "Oman":         [48.5, 50.1, 51.8, 53.5, 55.2, 52.1, 55.8, 58.5, 61.2, 63.9],
-    },
-    # ── Graduate Employment Rate (%) ─────────────────────────────────────────
-    "graduate_employment_rate": {
-        "Saudi Arabia": [55.2, 58.5, 62.1, 66.8, 70.5, 65.2, 71.8, 76.5, 81.2, 85.8],
-        "UAE":          [78.5, 80.2, 82.1, 84.5, 86.2, 82.8, 86.5, 88.5, 90.2, 92.1],
-        "Qatar":        [88.2, 89.5, 91.2, 92.8, 94.1, 91.8, 94.2, 95.8, 97.1, 98.2],
-        "Kuwait":       [65.5, 67.8, 70.2, 72.8, 75.5, 71.2, 75.8, 79.5, 83.1, 86.8],
-        "Bahrain":      [70.2, 72.8, 75.5, 78.2, 81.2, 76.8, 81.5, 85.2, 88.5, 91.8],
-        "Oman":         [62.5, 65.8, 69.2, 73.5, 77.8, 72.5, 78.2, 82.8, 87.5, 91.2],
-    },
-    # ── Private Sector Employment Share (%) ──────────────────────────────────
-    "private_sector_share": {
-        "Saudi Arabia": [20.5, 22.8, 25.2, 28.5, 32.1, 29.8, 34.5, 38.9, 43.2, 47.8],
-        "UAE":          [75.5, 76.2, 77.5, 78.8, 80.2, 77.8, 80.5, 82.2, 84.1, 86.2],
-        "Qatar":        [35.2, 36.8, 38.5, 40.2, 42.1, 39.5, 42.8, 45.2, 47.8, 50.5],
-        "Kuwait":       [15.2, 16.5, 17.8, 19.2, 20.8, 18.5, 21.5, 23.8, 26.2, 28.8],
-        "Bahrain":      [58.5, 60.2, 62.1, 64.5, 67.2, 63.8, 67.5, 71.2, 75.1, 79.2],
-        "Oman":         [45.2, 47.5, 50.1, 53.5, 57.2, 53.5, 58.2, 63.1, 68.5, 73.2],
-    },
-    # ── Digital Sector Employment Growth (%) ─────────────────────────────────
-    "digital_sector_growth": {
-        "Saudi Arabia": [ 8.5, 10.2, 12.8, 15.5, 18.2, 16.5, 22.5, 28.8, 35.2, 42.8],
-        "UAE":          [15.5, 18.2, 21.5, 25.2, 29.8, 27.5, 33.2, 39.8, 47.5, 55.2],
-        "Qatar":        [10.2, 12.5, 15.1, 18.5, 22.8, 20.5, 26.8, 33.5, 41.2, 49.8],
-        "Kuwait":       [ 5.2,  6.8,  8.5, 10.8, 13.5, 12.1, 16.5, 21.2, 27.5, 34.2],
-        "Bahrain":      [12.5, 15.2, 18.8, 23.2, 28.5, 25.8, 32.5, 40.2, 49.5, 59.8],
-        "Oman":         [ 6.5,  8.2, 10.5, 13.5, 17.2, 15.5, 20.8, 27.2, 35.5, 45.2],
-    },
-}
+def _ensure_loaded(force: bool = False) -> None:
+    """Load all indicator CSVs into _cache on first call."""
+    global _loaded
+    if _loaded and not force:
+        return
+    for key in INDICATORS:
+        df = load_indicator(key, force_refresh=force)
+        _cache[key] = df if not df.empty else pd.DataFrame()
+    _loaded = True
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Public API
-# ──────────────────────────────────────────────────────────────────────────────
+
+def refresh(force: bool = True) -> None:
+    """Re-fetch all indicators from the World Bank API and rebuild the cache."""
+    global _loaded
+    fetch_all(force_refresh=force)
+    _cache.clear()
+    _loaded = False
+    _ensure_loaded()
+
+
+def _raw(indicator: str) -> pd.DataFrame:
+    """Return the raw year×country DataFrame for one indicator."""
+    _ensure_loaded()
+    return _cache.get(indicator, pd.DataFrame())
+
+
+# ── Series construction helpers ───────────────────────────────────────────────
+
+def _to_annual_series(country: str, indicator: str) -> pd.Series:
+    """
+    Build a clean annual pd.Series (YS DatetimeIndex) for one country/indicator.
+    Drops leading/trailing NaN rows; fills internal gaps by interpolation.
+    """
+    df = _raw(indicator)
+    if df.empty or country not in df.columns:
+        return pd.Series(dtype=float)
+
+    col = df[country].astype(float)
+    # Drop rows where this country has no data at all
+    col = col.dropna()
+    if col.empty:
+        return pd.Series(dtype=float)
+
+    # Reconstruct a complete integer-year index between first and last valid year
+    start_y = int(col.index.min())
+    end_y   = int(col.index.max())
+    all_years = list(range(start_y, end_y + 1))
+    col = col.reindex(all_years).interpolate(method="linear", limit_direction="both").ffill().bfill()
+
+    idx = pd.date_range(start=f"{start_y}-01-01", periods=len(all_years), freq="YS")
+    return pd.Series(col.values, index=idx, dtype=float)
+
+
+# ── Public API ────────────────────────────────────────────────────────────────
 
 def get_series(country: str, indicator: str) -> pd.Series:
-    """Return an annual pd.Series (DatetimeIndex, YS frequency) for one country/indicator."""
-    values = _RAW[indicator][country]
-    idx = pd.date_range(start=f"{YEARS[0]}-01-01", periods=len(YEARS), freq="YS")
-    return pd.Series(values, index=idx, name=indicator, dtype=float)
+    """Annual pd.Series (YS DatetimeIndex) for one country/indicator."""
+    return _to_annual_series(country, indicator)
 
 
 def get_monthly_series(country: str, indicator: str) -> pd.Series:
     """
-    Return a monthly pd.Series (MS frequency) via cubic spline interpolation.
-    Adds ±2% realistic noise to make the series more natural.
+    Monthly pd.Series (MS DatetimeIndex) produced by cubic-spline interpolation
+    of the annual series plus ±1% realistic noise.
     """
-    annual = get_series(country, indicator)
-    monthly_idx = pd.date_range(start=annual.index[0], end=annual.index[-1] + pd.DateOffset(months=11), freq="MS")
-    interp = annual.reindex(annual.index.union(monthly_idx)).interpolate(method="cubicspline")
-    interp = interp.reindex(monthly_idx)
-    rng = np.random.default_rng(abs(hash(country + indicator)) % (2**32))
-    noise_scale = float(annual.std()) * 0.02
-    noise = rng.normal(0, noise_scale, len(interp))
-    result = interp + noise
-    if INDICATORS[indicator]["lower_is_better"]:
-        result = result.clip(lower=0.5)
-    else:
-        result = result.clip(upper=100.0, lower=1.0)
-    return result.round(2)
+    annual = _to_annual_series(country, indicator)
+    if annual.empty:
+        return pd.Series(dtype=float)
+
+    monthly_idx = pd.date_range(
+        start=annual.index[0],
+        end=annual.index[-1] + pd.DateOffset(months=11),
+        freq="MS",
+    )
+    interp = (
+        annual
+        .reindex(annual.index.union(monthly_idx))
+        .interpolate(method="cubicspline")
+        .reindex(monthly_idx)
+    )
+
+    rng = np.random.default_rng(abs(hash(country + indicator)) % (2 ** 32))
+    noise_scale = float(annual.std()) * 0.01
+    interp = (interp + rng.normal(0, noise_scale, len(interp))).clip(lower=0.0)
+    return interp.round(3)
 
 
 def get_all_countries_df(indicator: str) -> pd.DataFrame:
-    """Return a DataFrame with one column per GCC country (annual, YS index)."""
-    idx = pd.date_range(start=f"{YEARS[0]}-01-01", periods=len(YEARS), freq="YS")
-    return pd.DataFrame(
-        {country: _RAW[indicator][country] for country in COUNTRIES},
-        index=idx,
-        dtype=float,
-    )
+    """
+    DataFrame of annual values — one column per GCC country.
+    Index = DatetimeIndex (YS).  Missing country data → NaN column.
+    """
+    country_series = {}
+    for country in COUNTRIES:
+        s = _to_annual_series(country, indicator)
+        if not s.empty:
+            country_series[country] = s
+
+    if not country_series:
+        return pd.DataFrame()
+
+    df = pd.DataFrame(country_series)
+    return df
 
 
 def get_gcc_average(indicator: str) -> pd.Series:
-    """Population-weighted GCC average (simplified equal weighting)."""
+    """Equal-weighted GCC average across all six countries."""
     df = get_all_countries_df(indicator)
-    return df.mean(axis=1).round(2)
+    if df.empty:
+        return pd.Series(dtype=float)
+    return df.mean(axis=1).round(3)
 
 
 def get_latest_values(indicator: str) -> pd.Series:
-    """Latest (2024) value for each country, sorted."""
+    """Latest available value for each country, sorted by performance."""
     df = get_all_countries_df(indicator)
-    latest = df.iloc[-1].sort_values(
-        ascending=INDICATORS[indicator]["lower_is_better"]
-    )
-    return latest
+    if df.empty:
+        return pd.Series(dtype=float)
+    latest = df.apply(lambda col: col.dropna().iloc[-1] if not col.dropna().empty else np.nan)
+    lib = INDICATORS[indicator]["lower_is_better"]
+    return latest.sort_values(ascending=bool(lib))
 
 
 def get_rankings(indicator: str) -> pd.DataFrame:
-    """Country rankings for the latest year."""
+    """Ranked DataFrame for the latest available year."""
     df = get_all_countries_df(indicator)
-    latest = df.iloc[-1]
-    prev = df.iloc[-2]
+    if df.empty:
+        return pd.DataFrame()
+
+    # Latest non-NaN value per country (may differ by country)
+    latest = df.apply(lambda col: col.dropna().iloc[-1] if not col.dropna().empty else np.nan)
+    prev   = df.apply(lambda col: col.dropna().iloc[-2] if len(col.dropna()) >= 2 else np.nan)
     change = latest - prev
 
-    lower_is_better = INDICATORS[indicator]["lower_is_better"]
-    ranked = latest.sort_values(ascending=lower_is_better).reset_index()
+    lib = INDICATORS[indicator]["lower_is_better"]
+    ranked = latest.sort_values(ascending=bool(lib)).reset_index()
     ranked.columns = ["country", "value"]
-    ranked["rank"] = range(1, len(ranked) + 1)
-    ranked["yoy_change"] = [change[c] for c in ranked["country"]]
-    ranked["flag"] = [COUNTRIES[c]["flag"] for c in ranked["country"]]
+    ranked["rank"]       = range(1, len(ranked) + 1)
+    ranked["yoy_change"] = [change.get(c, np.nan) for c in ranked["country"]]
+    ranked["flag"]       = [COUNTRIES.get(c, {}).get("flag", "") for c in ranked["country"]]
     return ranked
 
 
 def get_trend_stats(country: str, indicator: str) -> dict:
-    """Summary statistics for a country/indicator series."""
-    s = get_series(country, indicator)
-    values = s.values
-    n = len(values)
-    x = np.arange(n)
-    slope, intercept = np.polyfit(x, values, 1)
-    lower_is_better = INDICATORS[indicator]["lower_is_better"]
+    """
+    Summary statistics for one country/indicator.
 
-    # 5-year CAGR
-    cagr = ((values[-1] / values[-5]) ** (1 / 5) - 1) * 100 if values[-5] != 0 else 0
+    Keys: latest, previous, yoy_change, yoy_pct_change, min_val, max_val,
+          mean, slope, improving, cagr_5y, covid_impact,
+          post_covid_recovery, gcc_avg_latest, rank_latest.
+    """
+    s = _to_annual_series(country, indicator)
+    if s.empty:
+        return {
+            "latest": np.nan, "previous": np.nan, "yoy_change": 0.0,
+            "yoy_pct_change": 0.0, "min_val": np.nan, "max_val": np.nan,
+            "mean": np.nan, "slope": 0.0, "improving": False,
+            "cagr_5y": 0.0, "covid_impact": 0.0, "post_covid_recovery": 0.0,
+            "gcc_avg_latest": np.nan, "rank_2024": 1,
+        }
 
-    # COVID impact (2020 vs 2019)
-    covid_impact = values[5] - values[4]  # 2020 - 2019
+    values  = s.values.astype(float)
+    years   = [d.year for d in s.index]
+    n       = len(values)
+    lib     = INDICATORS[indicator]["lower_is_better"]
 
-    # Post-COVID recovery speed
-    recovery = values[-1] - values[5]  # 2024 - 2020
+    slope   = float(np.polyfit(range(n), values, 1)[0]) if n >= 2 else 0.0
+    improving = (slope < 0) if lib else (slope > 0)
+
+    latest  = float(values[-1])
+    prev    = float(values[-2]) if n >= 2 else latest
+    yoy     = latest - prev
+    yoy_pct = (yoy / abs(prev) * 100) if prev != 0 else 0.0
+
+    # 5-year CAGR anchored to actual years
+    cagr = 0.0
+    y_last = years[-1]
+    y_5ago = y_last - 5
+    if y_5ago in years:
+        v_5ago = float(values[years.index(y_5ago)])
+        if v_5ago > 0 and values[-1] > 0:
+            cagr = (values[-1] / v_5ago) ** (1 / 5) - 1
+            cagr *= 100
+
+    # COVID impact: 2020 vs 2019
+    covid_impact = 0.0
+    if 2019 in years and 2020 in years:
+        covid_impact = float(values[years.index(2020)] - values[years.index(2019)])
+
+    # Post-COVID recovery: latest vs 2020
+    recovery = 0.0
+    if 2020 in years:
+        recovery = float(values[-1] - values[years.index(2020)])
+
+    gcc_avg = get_gcc_average(indicator)
+    gcc_avg_latest = float(gcc_avg.iloc[-1]) if not gcc_avg.empty else np.nan
+
+    rankings = get_rankings(indicator)
+    rank = int(rankings.set_index("country").loc[country, "rank"]) if not rankings.empty and country in rankings["country"].values else 1
 
     return {
-        "latest": float(values[-1]),
-        "previous": float(values[-2]),
-        "yoy_change": float(values[-1] - values[-2]),
-        "yoy_pct_change": float((values[-1] - values[-2]) / abs(values[-2]) * 100) if values[-2] != 0 else 0,
-        "min_val": float(values.min()),
-        "max_val": float(values.max()),
-        "mean": float(values.mean()),
-        "slope": float(slope),
-        "improving": (slope < 0 if lower_is_better else slope > 0),
-        "cagr_5y": float(cagr),
-        "covid_impact": float(covid_impact),
-        "post_covid_recovery": float(recovery),
-        "gcc_avg_2024": float(get_gcc_average(indicator).iloc[-1]),
-        "rank_2024": int(get_rankings(indicator).set_index("country").loc[country, "rank"]),
+        "latest":              latest,
+        "previous":            prev,
+        "yoy_change":          float(yoy),
+        "yoy_pct_change":      float(yoy_pct),
+        "min_val":             float(values.min()),
+        "max_val":             float(values.max()),
+        "mean":                float(values.mean()),
+        "slope":               slope,
+        "improving":           improving,
+        "cagr_5y":             float(cagr),
+        "covid_impact":        covid_impact,
+        "post_covid_recovery": recovery,
+        "gcc_avg_latest":      gcc_avg_latest,
+        "rank_2024":           rank,
     }

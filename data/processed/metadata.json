@@ -1,0 +1,39 @@
+{
+  "last_updated": "2026-05-08 06:43 UTC",
+  "start_year": 2010,
+  "end_year": 2024,
+  "source": "World Bank Open Data (pre-seeded)",
+  "source_url": "https://data.worldbank.org",
+  "api_url": "https://api.worldbank.org/v2",
+  "seed_note": "Values pre-loaded from World Bank / ILO / ITU published statistics. Use 'Refresh Data' to overwrite with the latest live API data.",
+  "indicators": {
+    "youth_unemployment_rate": {
+      "wb_code": "SL.UEM.1524.ZS",
+      "name": "Youth Unemployment Rate"
+    },
+    "gdp_growth": {
+      "wb_code": "NY.GDP.MKTP.KD.ZG",
+      "name": "GDP Growth Rate"
+    },
+    "inflation": {
+      "wb_code": "FP.CPI.TOTL.ZG",
+      "name": "Inflation Rate (CPI)"
+    },
+    "population_growth": {
+      "wb_code": "SP.POP.GROW",
+      "name": "Population Growth Rate"
+    },
+    "internet_usage": {
+      "wb_code": "IT.NET.USER.ZS",
+      "name": "Internet Users (% of Population)"
+    }
+  },
+  "countries": {
+    "Oman": "OMN",
+    "Saudi Arabia": "SAU",
+    "UAE": "ARE",
+    "Qatar": "QAT",
+    "Kuwait": "KWT",
+    "Bahrain": "BHR"
+  }
+}

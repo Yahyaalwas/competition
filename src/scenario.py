@@ -18,41 +18,48 @@ import pandas as pd
 # ──────────────────────────────────────────────────────────────────────────────
 
 # fmt: off
+# Elasticity = change in indicator (pp) per +1 pp change in each policy lever.
+# Lever keys are independent of WB indicator keys — they are adjustable parameters
+# that the user controls in the Scenario Simulator UI.
 _ELASTICITIES: Dict[str, Dict[str, float]] = {
+    # ── Primary outcome (youth unemployment) ──────────────────────────────────
+    # Okun-style elasticities calibrated to GCC labour market literature.
     "youth_unemployment_rate": {
-        "gdp_growth":           -0.60,  # +1pp GDP → -0.6pp unemployment
-        "digital_investment":   -0.28,
-        "education_investment": -0.35,
-        "labor_reforms":        -0.45,
-        "population_growth":    +0.38,
+        "gdp_growth":           -0.60,  # +1pp GDP growth  → -0.6pp youth unemployment
+        "digital_investment":   -0.28,  # +1pp digital inv  → -0.28pp
+        "education_investment": -0.35,  # +1pp edu spend    → -0.35pp
+        "labor_reforms":        -0.45,  # +1pp reform index → -0.45pp
+        "population_growth":    +0.38,  # +1pp pop growth   → +0.38pp (demographic pressure)
     },
-    "labor_force_participation": {
-        "gdp_growth":           +0.30,
-        "digital_investment":   +0.42,
-        "education_investment": +0.50,
-        "labor_reforms":        +0.60,
-        "population_growth":    +0.18,
-    },
-    "graduate_employment_rate": {
-        "gdp_growth":           +0.25,
+    # ── World Bank contextual indicators ──────────────────────────────────────
+    # Elasticities describe how policy levers affect each WB macro indicator.
+    "gdp_growth": {
+        "gdp_growth":           +1.00,  # tautological lever alignment
         "digital_investment":   +0.35,
-        "education_investment": +0.55,
+        "education_investment": +0.25,
         "labor_reforms":        +0.30,
-        "population_growth":    -0.10,
+        "population_growth":    +0.15,
     },
-    "private_sector_share": {
-        "gdp_growth":           +0.30,
-        "digital_investment":   +0.40,
-        "education_investment": +0.20,
-        "labor_reforms":        +0.55,
+    "inflation": {
+        "gdp_growth":           +0.20,  # demand-pull: higher growth → mild inflation
+        "digital_investment":   -0.10,  # productivity gains reduce prices
+        "education_investment": -0.05,
+        "labor_reforms":        -0.08,
+        "population_growth":    +0.12,  # demand pressure
+    },
+    "population_growth": {
+        "gdp_growth":           +0.05,
+        "digital_investment":   +0.00,
+        "education_investment": +0.02,
+        "labor_reforms":        +0.00,
+        "population_growth":    +1.00,  # tautological
+    },
+    "internet_usage": {
+        "gdp_growth":           +0.40,  # richer economies adopt faster
+        "digital_investment":   +0.80,  # direct effect
+        "education_investment": +0.30,
+        "labor_reforms":        +0.10,
         "population_growth":    +0.05,
-    },
-    "digital_sector_growth": {
-        "gdp_growth":           +0.45,
-        "digital_investment":   +0.80,
-        "education_investment": +0.40,
-        "labor_reforms":        +0.25,
-        "population_growth":    +0.10,
     },
 }
 # fmt: on

@@ -189,58 +189,108 @@ _INDICATOR_POLICY = {
             "تخفيف الاحتكاك في البحث عن العمل عبر منصات رقمية موحّدة.",
         ],
     },
-    "graduate_employment_rate": {
+    # ── World Bank indicator: GDP Growth Rate ─────────────────────────────────
+    "gdp_growth": {
         "improving": [
-            "Align university curriculum with employer advisory boards on a rolling basis.",
-            "Scale micro-credential pathways to supplement traditional degrees.",
+            "Leverage fiscal headroom created by GDP growth to fund active labour market programmes.",
+            "Use expansion phase to accelerate private-sector capacity building and youth hiring incentives.",
+            "Institutionalise counter-cyclical employment buffers to smooth future downturns.",
+            "Direct growth dividends toward vocational and digital reskilling funds.",
         ],
         "worsening": [
-            "Mandate graduate employment outcome disclosure from higher education institutions.",
-            "Launch bridging programmes for over-qualified youth in non-graduate roles.",
+            "Prioritise productivity-enhancing public investment to restore growth momentum.",
+            "Introduce targeted fiscal stimulus measures focused on labour-intensive sectors.",
+            "Review structural barriers to non-oil private investment to diversify the growth base.",
+            "Strengthen social protection floors to cushion youth employment during low-growth periods.",
         ],
         "improving_ar": [
-            "تحديث مناهج الجامعات بالتنسيق مع مجالس استشارية من أصحاب العمل.",
-            "توسيع مسارات الشهادات الصغيرة المعيارية لاستكمال المؤهلات التقليدية.",
+            "الاستفادة من الهامش المالي الناجم عن النمو الاقتصادي لتمويل برامج سوق العمل النشطة.",
+            "توظيف مرحلة التوسع لتسريع بناء قدرات القطاع الخاص وتحفيز توظيف الشباب.",
+            "تأسيس مخازن توظيف مضادة للدورة الاقتصادية للتخفيف من آثار التباطؤ المستقبلي.",
+            "توجيه عائدات النمو نحو صناديق إعادة التأهيل المهني والرقمي.",
         ],
         "worsening_ar": [
-            "إلزام مؤسسات التعليم العالي بنشر نتائج توظيف خريجيها.",
-            "إطلاق برامج جسر للشباب المؤهل العامل في وظائف دون مستوى مؤهلاتهم.",
+            "إعطاء الأولوية للاستثمار العام المعزز للإنتاجية لاستعادة زخم النمو.",
+            "إطلاق حزم تحفيز مالي مُستهدَفة تُركّز على القطاعات كثيفة العمالة.",
+            "مراجعة العوائق الهيكلية أمام الاستثمار الخاص غير النفطي لتنويع قاعدة النمو.",
+            "تعزيز شبكات الحماية الاجتماعية لحماية توظيف الشباب في فترات النمو المنخفض.",
         ],
     },
-    "private_sector_share": {
+    # ── World Bank indicator: Inflation Rate ──────────────────────────────────
+    "inflation": {
         "improving": [
-            "Maintain incentive differentials favouring private-sector employment.",
-            "Reduce bureaucratic barriers for SME formation to expand the private-sector base.",
+            "Sustain inflation discipline through credible monetary and fiscal coordination.",
+            "Use price stability to anchor long-term business confidence and private hiring.",
+            "Expand price-stabilisation mechanisms for essential goods affecting household budgets.",
+            "Institutionalise independent price monitoring to pre-empt supply-side shocks.",
         ],
         "worsening": [
-            "Review public-sector compensation frameworks to narrow the public–private wage gap.",
-            "Introduce time-bound nationalisation targets with employer support packages.",
+            "Coordinate monetary tightening with targeted support for youth-employment-intensive sectors.",
+            "Introduce supply-side relief measures (logistics, food imports) to reduce cost-push inflation.",
+            "Protect real wages of young workers through indexed minimum wage adjustments.",
+            "Identify and address structural bottlenecks driving persistent inflationary pressure.",
         ],
         "improving_ar": [
-            "الحفاظ على حوافز تفضيل توظيف القطاع الخاص.",
-            "تخفيف العوائق البيروقراطية أمام تأسيس الشركات الصغيرة والمتوسطة.",
+            "الحفاظ على انضباط التضخم من خلال التنسيق الموثوق بين السياسات النقدية والمالية.",
+            "استثمار استقرار الأسعار لترسيخ ثقة قطاع الأعمال بعيد المدى وتوسيع التوظيف الخاص.",
+            "توسيع آليات تثبيت أسعار السلع الأساسية المؤثرة في ميزانيات الأسر.",
+            "تأسيس رقابة مستقلة على الأسعار للتحذير المبكر من الصدمات العرضية.",
         ],
         "worsening_ar": [
-            "مراجعة هياكل تعويضات القطاع الحكومي للحد من الفجوة الأجرية.",
-            "تحديد أهداف توطين مؤقتة مدعومة بحزم مساعدة لأصحاب العمل.",
+            "تنسيق التشديد النقدي مع دعم القطاعات كثيفة التوظيف الشبابي.",
+            "اتخاذ تدابير تخفيف من جانب العرض (لوجستيات، واردات غذائية) لكبح التضخم الدفعي.",
+            "حماية الأجور الحقيقية للعمال الشباب عبر تعديلات الحد الأدنى للأجور المرتبطة بالتضخم.",
+            "تشخيص الاختناقات الهيكلية التي تُغذّي ضغوط التضخم المستمرة ومعالجتها.",
         ],
     },
-    "digital_sector_growth": {
+    # ── World Bank indicator: Population Growth Rate ──────────────────────────
+    "population_growth": {
         "improving": [
-            "Establish digital free zones and accelerators to compound growth trajectory.",
-            "Expand national AI and coding academies to meet surging digital talent demand.",
+            "Align education and vocational training supply with demographic growth projections.",
+            "Use growing youth cohorts as a competitive advantage through targeted skills development.",
+            "Invest in labour market data systems that track demographic demand-supply dynamics.",
         ],
         "worsening": [
-            "Revisit digital economy regulatory framework to unlock private investment.",
-            "Strengthen university–industry research partnerships in STEM disciplines.",
+            "Review migration and residency policies affecting the active workforce composition.",
+            "Invest in productivity-enhancing technology to offset declining labour force growth.",
+            "Re-evaluate long-term workforce planning frameworks in light of demographic shifts.",
         ],
         "improving_ar": [
-            "إنشاء مناطق رقمية حرة ومسرّعات أعمال لتعزيز مسار النمو.",
-            "توسيع الأكاديميات الوطنية للذكاء الاصطناعي والبرمجة لتلبية الطلب المتنامي على الكفاءات الرقمية.",
+            "توافق إمدادات التعليم والتدريب المهني مع توقعات النمو الديموغرافي.",
+            "توظيف فئات الشباب المتنامية ميزةً تنافسية من خلال تنمية المهارات الموجّهة.",
+            "الاستثمار في أنظمة بيانات سوق العمل لرصد ديناميكيات العرض والطلب الديموغرافية.",
         ],
         "worsening_ar": [
-            "إعادة النظر في الإطار التنظيمي للاقتصاد الرقمي لاستقطاب الاستثمار الخاص.",
-            "تعزيز شراكات البحث بين الجامعات والصناعة في تخصصات العلوم والتقنية والهندسة والرياضيات.",
+            "مراجعة سياسات الهجرة والإقامة المؤثرة في تركيبة القوة العاملة النشطة.",
+            "الاستثمار في تقنيات تعزيز الإنتاجية لتعويض تباطؤ نمو القوة العاملة.",
+            "إعادة تقييم أُطر التخطيط للقوى العاملة على المدى البعيد في ضوء التحولات الديموغرافية.",
+        ],
+    },
+    # ── World Bank indicator: Internet Usage ──────────────────────────────────
+    "internet_usage": {
+        "improving": [
+            "Leverage rising connectivity to scale digital skilling platforms for youth.",
+            "Invest in cloud and AI infrastructure to capture value from growing digital participation.",
+            "Support digital entrepreneurship programmes targeting online talent pools.",
+            "Use broadband penetration gains to deliver remote employment opportunities in rural areas.",
+        ],
+        "worsening": [
+            "Prioritise national broadband expansion plans, particularly for underserved regions.",
+            "Introduce digital access subsidies for lower-income youth households.",
+            "Launch public digital literacy campaigns to raise participation rates.",
+            "Review spectrum allocation and telecommunications market competitiveness.",
+        ],
+        "improving_ar": [
+            "الاستفادة من الاتصال المتنامي لتوسيع منصات التأهيل الرقمي للشباب.",
+            "الاستثمار في البنية التحتية السحابية والذكاء الاصطناعي لاستثمار المشاركة الرقمية المتنامية.",
+            "دعم برامج ريادة الأعمال الرقمية الموجّهة نحو مجمعات المواهب الإلكترونية.",
+            "توظيف مكاسب انتشار النطاق العريض لتوفير فرص العمل عن بُعد في المناطق النائية.",
+        ],
+        "worsening_ar": [
+            "إيلاء الأولوية لخطط توسيع النطاق العريض الوطني، لا سيما في المناطق المحرومة.",
+            "إدخال دعم للوصول الرقمي لأسر الشباب ذات الدخل المنخفض.",
+            "إطلاق حملات وطنية لمحو الأمية الرقمية لرفع معدلات المشاركة.",
+            "مراجعة تخصيص الطيف الترددي وتنافسية سوق الاتصالات.",
         ],
     },
 }
