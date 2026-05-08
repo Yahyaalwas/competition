@@ -374,6 +374,120 @@ div[data-testid="metric-container"] {{
 ::-webkit-scrollbar-track {{ background: #EEF2F7; }}
 ::-webkit-scrollbar-thumb {{ background: #B8CCE0; border-radius: 4px; }}
 ::-webkit-scrollbar-thumb:hover {{ background: {_PRIMARY}; }}
+
+/* ══ Trust & confidence panel (Priority 5) ═══════════════════════════════════ */
+.trust-header {{
+    background: linear-gradient(135deg, #091320 0%, #0D2A42 40%, #1B4F72 100%);
+    border-radius: 16px; padding: 1.6rem 2rem; color: white;
+    display: flex; align-items: center; gap: 2rem;
+    box-shadow: 0 8px 32px rgba(9,19,32,0.32);
+    border: 1px solid rgba(195,155,78,0.22); margin-bottom: 1.5rem;
+}}
+.trust-score-ring {{
+    min-width: 80px; text-align: center;
+}}
+.trust-score-num {{
+    font-size: 2.6rem; font-weight: 900; line-height: 1; color: #E8C96E;
+}}
+.trust-score-lbl {{
+    font-size: 0.60rem; text-transform: uppercase; letter-spacing: 0.8px;
+    opacity: 0.65; margin-top: 3px;
+}}
+.trust-divider {{
+    width: 1px; height: 60px; background: rgba(255,255,255,0.15); flex-shrink: 0;
+}}
+.trust-meta {{ flex: 1; }}
+.trust-meta-title {{ font-size: 1.1rem; font-weight: 800; line-height: 1.2; }}
+.trust-meta-sub {{ font-size: 0.82rem; opacity: 0.72; margin-top: 4px; line-height: 1.5; }}
+.trust-badges {{ display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }}
+.trust-badge {{
+    background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2);
+    padding: 3px 10px; border-radius: 20px;
+    font-size: 0.68rem; font-weight: 700; letter-spacing: 0.4px;
+}}
+
+/* ══ Confidence tier card ═════════════════════════════════════════════════════ */
+.confidence-card {{
+    background: white; border-radius: 14px; padding: 1.3rem 1.5rem;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+    border-top: 5px solid {_PRIMARY}; margin: 0.4rem 0;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}}
+.confidence-card:hover {{ transform: translateY(-3px); box-shadow: 0 8px 28px rgba(0,0,0,0.13); }}
+.confidence-tier {{ font-size: 2rem; font-weight: 900; line-height: 1; }}
+.confidence-label {{ font-size: 1.0rem; font-weight: 800; margin-top: 4px; }}
+.confidence-score-bar {{
+    height: 6px; border-radius: 3px; margin: 8px 0;
+    background: linear-gradient(90deg, #EAEAEA, #EAEAEA);
+    position: relative; overflow: hidden;
+}}
+.confidence-score-fill {{
+    height: 100%; border-radius: 3px;
+    transition: width 0.5s ease;
+}}
+.confidence-expl {{ font-size: 0.82rem; color: #555; line-height: 1.6; margin-top: 6px; }}
+
+/* ══ Driver insight card ══════════════════════════════════════════════════════ */
+.driver-card {{
+    background: white; border-radius: 10px; padding: 0.85rem 1.1rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.065); margin: 0.4rem 0;
+    display: flex; align-items: flex-start; gap: 0.75rem;
+    border: 1px solid rgba(27,79,114,0.07);
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+}}
+.driver-card:hover {{ transform: translateX(3px); box-shadow: 0 4px 18px rgba(0,0,0,0.1); }}
+.driver-rank {{
+    min-width: 28px; height: 28px; border-radius: 50%;
+    background: {_PRIMARY}; color: white;
+    font-size: 0.75rem; font-weight: 800;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    margin-top: 2px;
+}}
+.driver-body {{ flex: 1; }}
+.driver-label {{ font-weight: 700; font-size: 0.88rem; color: {_PRIMARY}; }}
+.driver-pct {{
+    display: inline-block; font-size: 0.68rem; font-weight: 700;
+    padding: 1px 7px; border-radius: 10px;
+    background: rgba(27,79,114,0.1); color: {_PRIMARY}; margin-left: 6px;
+}}
+.driver-dir-pos {{ color: {_SUCCESS}; font-size: 0.78rem; font-weight: 700; }}
+.driver-dir-neg {{ color: {_DANGER};  font-size: 0.78rem; font-weight: 700; }}
+.driver-dir-neu {{ color: {_WARNING}; font-size: 0.78rem; font-weight: 700; }}
+.driver-expl {{ font-size: 0.79rem; color: #666; line-height: 1.5; margin-top: 3px; }}
+
+/* ══ Transparency section cards ══════════════════════════════════════════════ */
+.transparency-card {{
+    background: white; border-radius: 12px; padding: 1.2rem 1.5rem;
+    box-shadow: 0 3px 14px rgba(0,0,0,0.07); margin: 0.5rem 0;
+    border-left: 5px solid {_PRIMARY}; line-height: 1.65;
+    transition: box-shadow 0.2s ease;
+}}
+.transparency-card:hover {{ box-shadow: 0 6px 24px rgba(0,0,0,0.12); }}
+.transparency-card-title {{
+    font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.9px;
+    font-weight: 700; color: {_GOLD}; margin-bottom: 0.5rem;
+}}
+.transparency-card-body {{ font-size: 0.88rem; color: #333; }}
+
+/* ══ Forecast caveat banner ═══════════════════════════════════════════════════ */
+.caveat-strip {{
+    background: rgba(195,155,78,0.08); border-radius: 8px;
+    padding: 0.6rem 1.1rem; font-size: 0.79rem; color: #6B5100;
+    border-left: 4px solid {_GOLD}; margin: 0.5rem 0; line-height: 1.5;
+}}
+.caveat-strip strong {{ color: #4A3800; }}
+
+/* ══ Model quality badge row ═════════════════════════════════════════════════ */
+.model-quality-panel {{
+    background: white; border-radius: 14px; padding: 1.3rem 1.6rem;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.08); margin: 0.5rem 0;
+    border-left: 6px solid {_PRIMARY};
+}}
+.model-grade-badge {{
+    display: inline-block; width: 44px; height: 44px; border-radius: 50%;
+    font-size: 1.2rem; font-weight: 900; text-align: center; line-height: 44px;
+    color: white; margin-right: 12px; flex-shrink: 0;
+}}
 </style>
 """, unsafe_allow_html=True)
 
@@ -615,6 +729,104 @@ def _scenario_section(title: str, body: str, border_color: str = "#1B4F72") -> s
         f'<div class="scenario-section" style="border-left-color:{border_color};">'
         f'<div class="scenario-section-title">{title}</div>'
         f'{body}'
+        f'</div>'
+    )
+
+
+def _trust_header(score: int, conf_label: str, conf_color: str,
+                  model_name: str, smape: float, tier: str) -> str:
+    """Full-width trust intelligence header for the explainability page."""
+    return (
+        f'<div class="trust-header">'
+        f'<div class="trust-score-ring">'
+        f'<div class="trust-score-num">{score}</div>'
+        f'<div class="trust-score-lbl">TRUST SCORE</div>'
+        f'</div>'
+        f'<div class="trust-divider"></div>'
+        f'<div class="trust-meta">'
+        f'<div class="trust-meta-title" style="color:{conf_color};">{conf_label}</div>'
+        f'<div class="trust-meta-sub">'
+        f'Best model: <strong>{model_name}</strong> &nbsp;·&nbsp; '
+        f'Accuracy: <strong>sMAPE {smape:.1f}%</strong> &nbsp;·&nbsp; '
+        f'Quality tier: <strong>{tier}</strong>'
+        f'</div>'
+        f'<div class="trust-badges">'
+        f'<span class="trust-badge">🌍 World Bank Open Data</span>'
+        f'<span class="trust-badge">🔬 Expanding-Window CV</span>'
+        f'<span class="trust-badge">📊 6-Model Ensemble</span>'
+        f'<span class="trust-badge">🤝 Evidence-Based</span>'
+        f'</div>'
+        f'</div>'
+        f'</div>'
+    )
+
+
+def _confidence_card(label: str, tier: str, score: int, color: str, explanation: str) -> str:
+    fill_pct = score
+    return (
+        f'<div class="confidence-card" style="border-top-color:{color};">'
+        f'<div style="display:flex;align-items:center;gap:12px;">'
+        f'<div class="confidence-tier" style="color:{color};">{tier}</div>'
+        f'<div>'
+        f'<div class="confidence-label" style="color:{color};">{label}</div>'
+        f'<div style="font-size:0.72rem;color:#888;">Trust score: {score}/100</div>'
+        f'</div>'
+        f'</div>'
+        f'<div class="confidence-score-bar" style="background:#EEF2F7;">'
+        f'<div class="confidence-score-fill" style="width:{fill_pct}%;background:{color};height:6px;border-radius:3px;"></div>'
+        f'</div>'
+        f'<div class="confidence-expl">{explanation}</div>'
+        f'</div>'
+    )
+
+
+def _driver_card(insight) -> str:
+    dir_cls = {"positive": "driver-dir-pos", "negative": "driver-dir-neg"}.get(insight.direction, "driver-dir-neu")
+    dir_icon = {"positive": "▲ Positive influence", "negative": "▼ Negative influence"}.get(insight.direction, "► Neutral")
+    return (
+        f'<div class="driver-card">'
+        f'<div class="driver-rank">{insight.rank}</div>'
+        f'<div class="driver-body">'
+        f'<div class="driver-label">{insight.label_en}'
+        f'<span class="driver-pct">{insight.influence_pct:.1f}%</span>'
+        f'&nbsp;<span class="{dir_cls}">{dir_icon}</span>'
+        f'</div>'
+        f'<div class="driver-expl">{insight.explanation_en}</div>'
+        f'</div>'
+        f'</div>'
+    )
+
+
+def _transparency_card(title: str, body: str, border_color: str = "#1B4F72") -> str:
+    return (
+        f'<div class="transparency-card" style="border-left-color:{border_color};">'
+        f'<div class="transparency-card-title">{title}</div>'
+        f'<div class="transparency-card-body">{body}</div>'
+        f'</div>'
+    )
+
+
+def _caveat_strip(text: str) -> str:
+    return f'<div class="caveat-strip">⚠ <strong>Forecast Caveat:</strong> {text}</div>'
+
+
+def _model_quality_panel(quality: dict, smape: float) -> str:
+    color = quality["color"]
+    badge = quality["badge"]
+    tier = quality["tier"]
+    rationale = quality["rationale_en"]
+    stability = quality["stability_en"]
+    return (
+        f'<div class="model-quality-panel" style="border-left-color:{color};">'
+        f'<div style="display:flex;align-items:center;margin-bottom:8px;">'
+        f'<div class="model-grade-badge" style="background:{color};">{badge}</div>'
+        f'<div>'
+        f'<div style="font-weight:800;font-size:1.05rem;color:{color};">{tier} Model Performance</div>'
+        f'<div style="font-size:0.75rem;color:#777;">sMAPE: {smape:.2f}%</div>'
+        f'</div>'
+        f'</div>'
+        f'<div style="font-size:0.87rem;line-height:1.65;margin-bottom:6px;">{rationale}</div>'
+        f'<div style="font-size:0.80rem;color:#555;font-style:italic;">{stability}</div>'
         f'</div>'
     )
 
@@ -1066,15 +1278,44 @@ def page_forecast_center():
         st.markdown("<br>", unsafe_allow_html=True)
         _section("Results")
 
-        smape_tier = "Excellent" if backtest.best_model_smape < 5 else ("Good" if backtest.best_model_smape < 12 else "Moderate")
+        # Compute confidence classification for this forecast
+        widths_fc = (hi - lo).values
+        vol_pct = float(y.std() / y.mean() * 100) if y.mean() != 0 else 0.0
+        conf_cls = intel_module.compute_confidence_classification(
+            smape=backtest.best_model_smape,
+            interval_width_mean=float(widths_fc.mean()),
+            volatility=vol_pct,
+            horizon=horizon,
+        )
+        quality = intel_module.compute_model_quality_tier(backtest.best_model_smape, backtest.best_model_name)
         smape_color = _SUCCESS if backtest.best_model_smape < 5 else (_WARNING if backtest.best_model_smape < 12 else _DANGER)
+
+        fc_col1, fc_col2 = st.columns([3, 2])
+        with fc_col1:
+            st.markdown(
+                _exec_card(
+                    "🏆 MODEL SELECTION RESULT — EXPANDING-WINDOW CROSS-VALIDATION",
+                    f'<strong>Best Model:</strong> {backtest.best_model_name} &nbsp;|&nbsp; '
+                    f'sMAPE: <strong style="color:{smape_color}">{backtest.best_model_smape:.2f}%</strong> '
+                    f'(<em>{quality["tier"]}</em>) &nbsp;|&nbsp; '
+                    f'RMSE: <strong>{backtest.best_model_rmse:.3f}</strong>',
+                ),
+                unsafe_allow_html=True,
+            )
+        with fc_col2:
+            st.markdown(
+                _confidence_card(
+                    conf_cls.label, conf_cls.tier, conf_cls.score,
+                    conf_cls.color, conf_cls.explanation_en,
+                ),
+                unsafe_allow_html=True,
+            )
+
         st.markdown(
-            _exec_card(
-                "🏆 MODEL SELECTION RESULT — EXPANDING-WINDOW CROSS-VALIDATION",
-                f'<strong>Best Model:</strong> {backtest.best_model_name} &nbsp;|&nbsp; '
-                f'sMAPE: <strong style="color:{smape_color}">{backtest.best_model_smape:.2f}%</strong> '
-                f'(<em>{smape_tier}</em>) &nbsp;|&nbsp; '
-                f'RMSE: <strong>{backtest.best_model_rmse:.3f}</strong>',
+            _caveat_strip(
+                "Forecasts are scenario-dependent and are designed to support — not replace — "
+                "evidence-based strategic decision-making. Long-term projections carry elevated "
+                "uncertainty under volatile macroeconomic conditions."
             ),
             unsafe_allow_html=True,
         )
@@ -1650,40 +1891,84 @@ def page_scenario_simulator():
 
 def page_explainability():
     _banner(
-        "🔬 AI Explainability Center",
-        "Transparent forecasting · Model diagnostics · Feature importance · Decomposition · Uncertainty analysis",
+        "🔬 AI Transparency & Explainability Center",
+        "Trustworthy AI · Transparent forecasting · Model reliability · Driver intelligence · Responsible decision support",
     )
 
     if "fc_results" not in st.session_state or "fc_meta" not in st.session_state:
-        st.info("💡 Run a forecast in the **Forecast Center** first to view explainability diagnostics.")
+        st.markdown(
+            _transparency_card(
+                "HOW TO USE THIS CENTRE",
+                "Run a forecast in the <strong>Forecast Center</strong> first to unlock the full AI explainability "
+                "and transparency diagnostics. This centre will then show: model reliability scoring, "
+                "ranked driver intelligence, forecast confidence classification, decomposition analysis, "
+                "and a complete responsible AI methodology guide.",
+                "#1B4F72",
+            ),
+            unsafe_allow_html=True,
+        )
+        _section("AI Transparency — Always Available")
+        _render_ai_transparency_tab()
         return
 
     y, fc, lo, hi, backtest, best_model = st.session_state["fc_results"]
     country, ind, freq_code, horizon, confidence = st.session_state["fc_meta"]
     meta = gcc_data.INDICATORS[ind]
 
-    tab_model, tab_fi, tab_decomp, tab_ci = st.tabs([
-        "📊 Model Performance",
-        "🔑 Feature Importance",
+    # ── Pre-compute shared intelligence objects ────────────────────────────────
+    widths = (hi - lo).values
+    vol_pct = float(y.std() / y.mean() * 100) if y.mean() != 0 else 0.0
+    conf_cls = intel_module.compute_confidence_classification(
+        smape=backtest.best_model_smape,
+        interval_width_mean=float(widths.mean()),
+        volatility=vol_pct,
+        horizon=horizon,
+    )
+    quality = intel_module.compute_model_quality_tier(backtest.best_model_smape, backtest.best_model_name)
+
+    slope = float(np.polyfit(range(len(y)), y.values, 1)[0])
+    lib = meta.get("lower_is_better", True)
+    improving = (slope < 0) if lib else (slope > 0)
+
+    # ── Trust header ──────────────────────────────────────────────────────────
+    st.markdown(
+        _trust_header(
+            score=conf_cls.score,
+            conf_label=conf_cls.label,
+            conf_color=conf_cls.color,
+            model_name=backtest.best_model_name,
+            smape=backtest.best_model_smape,
+            tier=quality["tier"],
+        ),
+        unsafe_allow_html=True,
+    )
+
+    tab_model, tab_driver, tab_conf, tab_decomp, tab_transparency = st.tabs([
+        "📊 Model Reliability",
+        "🔑 Driver Intelligence",
+        "🔭 Forecast Confidence",
         "📉 Decomposition",
-        "📐 Confidence Intervals",
+        "🛡️ AI Transparency",
     ])
 
-    # ── Model Performance ─────────────────────────────────────────────────────
+    # ── Tab 1: Model Reliability ──────────────────────────────────────────────
     with tab_model:
-        _section("Cross-Validation Model Comparison")
+        _section("Model Quality Assessment")
+        st.markdown(_model_quality_panel(quality, backtest.best_model_smape), unsafe_allow_html=True)
+
         st.markdown(
             _exec_card(
-                "METHODOLOGY — EXPANDING-WINDOW CROSS-VALIDATION",
-                "Models were evaluated using <strong>expanding-window cross-validation</strong>. "
-                "sMAPE (Symmetric Mean Absolute Percentage Error) is the primary selection metric — "
-                "it is robust to near-zero values and symmetric around over/under-forecasting errors.",
+                "SELECTION METHODOLOGY — EXPANDING-WINDOW CROSS-VALIDATION",
+                "Six candidate models (Naïve, Seasonal Naïve, Moving Average, Drift, SARIMAX, LightGBM) were evaluated "
+                "using <strong>expanding-window cross-validation</strong>. Each fold adds historical data while holding out "
+                "a fixed future period for testing. <strong>sMAPE</strong> (Symmetric Mean Absolute Percentage Error) "
+                "is the primary selection metric — it is robust to near-zero values and symmetric around errors. "
+                "The model with the lowest sMAPE is selected as the best model for this configuration.",
             ),
             unsafe_allow_html=True,
         )
 
         comp = backtest.comparison_df.copy()
-
         col_t, col_ch = st.columns([1, 2])
         with col_t:
             display = comp.set_index("model").round(3)
@@ -1692,9 +1977,8 @@ def page_explainability():
                 display.style.highlight_min(subset=["sMAPE (%)"], color="#D5F5E3"),
                 use_container_width=True,
             )
-
         with col_ch:
-            fig = go.Figure(layout=_plotly_base("sMAPE by Model (lower = better)"))
+            fig = go.Figure(layout=_plotly_base("Model Comparison — sMAPE (lower = better)"))
             bar_c = [_GOLD if m == backtest.best_model_name else "#AABBCC" for m in comp["model"]]
             fig.add_trace(go.Bar(
                 x=comp["model"], y=comp["smape"],
@@ -1705,59 +1989,206 @@ def page_explainability():
             fig.update_layout(yaxis_title="sMAPE (%)", height=300)
             st.plotly_chart(fig, use_container_width=True)
 
-        # ── Metric explanations ───────────────────────────────────────────────
         st.markdown("<br>", unsafe_allow_html=True)
         _section("Metric Definitions")
         m1, m2, m3, m4 = st.columns(4)
         for col, name, desc in [
-            (m1, "MAE", "Mean absolute difference between forecast and actual values."),
-            (m2, "RMSE", "Root mean squared error — penalises large errors more heavily."),
-            (m3, "MAPE", "Mean absolute % error — undefined near zero values."),
-            (m4, "sMAPE", "Symmetric MAPE — the primary competition-grade metric used here."),
+            (m1, "MAE", "Mean absolute difference between forecast and actual values. Easy to interpret but sensitive to scale."),
+            (m2, "RMSE", "Root mean squared error — penalises large errors more heavily. Good for detecting outlier sensitivity."),
+            (m3, "MAPE", "Mean absolute percentage error — intuitive but undefined near zero values."),
+            (m4, "sMAPE", "Symmetric MAPE — the primary competition-grade metric. Robust to near-zero values and directional errors."),
         ]:
-            col.markdown(f'<div class="insight-card"><strong>{name}</strong><br><span style="font-size:0.82rem">{desc}</span></div>',
-                         unsafe_allow_html=True)
+            col.markdown(
+                f'<div class="insight-card"><strong>{name}</strong><br>'
+                f'<span style="font-size:0.80rem;color:#555;">{desc}</span></div>',
+                unsafe_allow_html=True,
+            )
 
-    # ── Feature Importance ────────────────────────────────────────────────────
-    with tab_fi:
-        _section("Feature Importance (LightGBM)")
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown(
+            _caveat_strip(
+                f"Model accuracy (sMAPE {backtest.best_model_smape:.1f}%) was measured on historical holdout data. "
+                "Future performance may differ under structural breaks, geopolitical shocks, or unprecedented macroeconomic shifts."
+            ),
+            unsafe_allow_html=True,
+        )
+
+    # ── Tab 2: Driver Intelligence ─────────────────────────────────────────────
+    with tab_driver:
+        _section("Feature Driver Intelligence")
         if hasattr(best_model, "get_feature_importance"):
             try:
-                fi = best_model.get_feature_importance().head(15)
-                fig = go.Figure(layout=_plotly_base("Top Feature Importances"))
-                fig.add_trace(go.Bar(
-                    x=fi.values[::-1], y=fi.index.tolist()[::-1],
-                    orientation="h", marker_color=_PRIMARY,
-                    text=[f"{v:.1f}" for v in fi.values[::-1]],
-                    textposition="outside",
-                ))
-                fig.update_layout(xaxis_title="Importance Score", height=max(300, len(fi) * 22 + 60))
-                st.plotly_chart(fig, use_container_width=True)
-                st.markdown(
-                    _exec_card(
-                        "FEATURE IMPORTANCE — LIGHTGBM INTERPRETATION",
-                        "Feature importance reflects how much each input variable contributed to the LightGBM model's "
-                        "predictions. <strong>Lag features</strong> capture autocorrelation; "
-                        "<strong>rolling statistics</strong> capture local trend momentum; "
-                        "<strong>calendar features</strong> (month, year) capture seasonality and structural drift.",
-                    ),
-                    unsafe_allow_html=True,
-                )
-            except Exception as e:
-                st.info(f"Feature importance not available for {best_model.name}: {e}")
-        else:
-            st.info(f"Feature importance is specific to the LightGBM model. The selected best model is **{best_model.name}**.")
+                fi_raw = best_model.get_feature_importance()
+                driver_insights = intel_module.interpret_feature_importance(fi_raw, ind, improving)
 
-    # ── Decomposition ─────────────────────────────────────────────────────────
+                if driver_insights:
+                    st.markdown(
+                        _exec_card(
+                            "EXECUTIVE DRIVER SUMMARY",
+                            f"The <strong>{backtest.best_model_name}</strong> model's predictions for "
+                            f"<strong>{country} — {meta['name']}</strong> are driven by the following ranked factors. "
+                            f"The dominant driver accounts for "
+                            f"<strong>{driver_insights[0].influence_pct:.1f}%</strong> of predictive influence. "
+                            f"{'Autocorrelation signals dominate, reflecting strong historical persistence.' if 'lag' in driver_insights[0].feature_name else 'Trend momentum features dominate, reflecting sustained structural shifts.'}"
+                        ),
+                        unsafe_allow_html=True,
+                    )
+
+                    # Ranked driver cards
+                    col_left, col_right = st.columns(2)
+                    for i, insight in enumerate(driver_insights):
+                        target_col = col_left if i % 2 == 0 else col_right
+                        target_col.markdown(_driver_card(insight), unsafe_allow_html=True)
+
+                    # Importance chart alongside
+                    st.markdown("<br>", unsafe_allow_html=True)
+                    _section("Feature Importance Chart")
+                    fi_top = fi_raw.head(12)
+                    total_imp = fi_top.sum()
+                    pct_vals = (fi_top / total_imp * 100).values[::-1] if total_imp > 0 else fi_top.values[::-1]
+                    feat_labels = fi_top.index.tolist()[::-1]
+
+                    # Map raw names to readable labels
+                    readable = []
+                    for fn in feat_labels:
+                        narr = intel_module._FEATURE_NARRATIVE.get(fn)
+                        readable.append(narr[0] if narr else fn.replace("_", " ").title())
+
+                    colors_fi = [_GOLD if "lag_1" in fn or "roll_mean" in fn else _PRIMARY for fn in feat_labels]
+                    fig_fi = go.Figure(layout=_plotly_base("Ranked Feature Drivers (% of predictive influence)"))
+                    fig_fi.add_trace(go.Bar(
+                        x=pct_vals, y=readable,
+                        orientation="h", marker_color=colors_fi,
+                        text=[f"{v:.1f}%" for v in pct_vals],
+                        textposition="outside",
+                    ))
+                    fig_fi.update_layout(xaxis_title="Influence (%)", height=max(300, len(fi_top) * 28 + 60))
+                    st.plotly_chart(fig_fi, use_container_width=True)
+
+                else:
+                    st.info("Feature importance details not available for this model configuration.")
+
+            except Exception as e:
+                st.info(f"Driver intelligence requires the LightGBM model to be selected. Current model: **{best_model.name}**.")
+        else:
+            st.markdown(
+                _exec_card(
+                    "DRIVER INTELLIGENCE — MODEL NOTE",
+                    f"Detailed feature driver intelligence is available when <strong>LightGBM</strong> is selected as the best model. "
+                    f"The current best model is <strong>{best_model.name}</strong>. "
+                    "For driver-level interpretability, re-run the forecast on a dataset where LightGBM achieves the lowest sMAPE.",
+                ),
+                unsafe_allow_html=True,
+            )
+            # Show macro driver context instead
+            _section("Macro-Economic Driver Context")
+            from src.intelligence import _COUNTRY_CONTEXT
+            ctx = _COUNTRY_CONTEXT.get(country, {})
+            drivers_en = ctx.get("causal_drivers_en", [])
+            if drivers_en:
+                for driver in drivers_en:
+                    st.markdown(_insight_html(driver), unsafe_allow_html=True)
+
+    # ── Tab 3: Forecast Confidence ─────────────────────────────────────────────
+    with tab_conf:
+        _section("Forecast Confidence Classification")
+
+        c_left, c_right = st.columns([2, 3])
+        with c_left:
+            st.markdown(
+                _confidence_card(
+                    conf_cls.label, conf_cls.tier, conf_cls.score,
+                    conf_cls.color, conf_cls.explanation_en,
+                ),
+                unsafe_allow_html=True,
+            )
+            st.markdown(
+                f'<div class="arabic-block" style="font-size:0.88rem;">'
+                f'<strong>تصنيف الثقة:</strong> {conf_cls.label_ar}<br><br>'
+                f'{conf_cls.explanation_ar}'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+
+        with c_right:
+            _section("Prediction Interval Analysis")
+            horizon_labels = [f"H+{i+1}" for i in range(len(widths))]
+            colors_ci = [conf_cls.color] * len(widths)
+            fig_ci = go.Figure(layout=_plotly_base("Prediction Interval Width by Forecast Horizon"))
+            fig_ci.add_trace(go.Bar(
+                x=horizon_labels, y=widths,
+                marker_color=colors_ci,
+                text=[f"{w:.2f}pp" for w in widths],
+                textposition="outside",
+            ))
+            fig_ci.update_layout(yaxis_title="Interval Width (pp)", height=300)
+            st.plotly_chart(fig_ci, use_container_width=True)
+
+            st.markdown(
+                _exec_card(
+                    "🔭 UNCERTAINTY INTERPRETATION",
+                    f'The <strong>{confidence*100:.0f}% prediction interval</strong> means that if model assumptions hold, '
+                    f'{confidence*100:.0f}% of actual future values should fall within the shaded band. '
+                    f'Wider intervals at longer horizons reflect <strong>compounding uncertainty</strong> — a fundamental '
+                    f'property of all time-series forecasting. Average interval width: '
+                    f'<strong>{widths.mean():.2f} percentage points</strong>. '
+                    f'{"Intervals are narrow, indicating high forecast precision." if widths.mean() < 2 else "Intervals suggest meaningful uncertainty — scenarios should be evaluated in parallel."}'
+                ),
+                unsafe_allow_html=True,
+            )
+
+        st.markdown("<br>", unsafe_allow_html=True)
+        _section("Confidence Tier Guide")
+        tier_cols = st.columns(5)
+        tier_guide = [
+            ("A", "High Confidence",     "#1A7A4A", "sMAPE < 5%"),
+            ("B", "Moderate Confidence", "#1B4F72", "sMAPE 5–12%"),
+            ("C", "Elevated Uncertainty","#C07820",  "sMAPE 12–20%"),
+            ("D", "Volatile Outlook",    "#A93226",  "sMAPE 20–30%"),
+            ("E", "Unstable Forecast",   "#7B241C",  "sMAPE > 30%"),
+        ]
+        for col_t, (t, lbl, clr, crit) in zip(tier_cols, tier_guide):
+            active = "font-weight:900;box-shadow:0 0 0 2px " + clr if t == conf_cls.tier else "opacity:0.55"
+            col_t.markdown(
+                f'<div style="text-align:center;padding:0.7rem;background:white;border-radius:10px;'
+                f'border:2px solid {clr};{active};">'
+                f'<div style="font-size:1.6rem;font-weight:900;color:{clr};">{t}</div>'
+                f'<div style="font-size:0.75rem;font-weight:700;color:{clr};margin:3px 0;">{lbl}</div>'
+                f'<div style="font-size:0.67rem;color:#888;">{crit}</div>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown(
+            _caveat_strip(
+                "Confidence classification is based on cross-validation accuracy, prediction interval width, "
+                "data volatility, and forecast horizon. It is a statistical signal — not a guarantee of future accuracy."
+            ),
+            unsafe_allow_html=True,
+        )
+
+    # ── Tab 4: Decomposition ───────────────────────────────────────────────────
     with tab_decomp:
         _section("Time-Series Decomposition")
+        st.markdown(
+            _exec_card(
+                "WHAT IS DECOMPOSITION?",
+                "Time-series decomposition separates the observed data into three interpretable components: "
+                "<strong>Trend</strong> (the long-run direction), <strong>Seasonal</strong> (recurring patterns "
+                "within each year), and <strong>Residual</strong> (unexplained variation). "
+                "Understanding these components helps policymakers distinguish between structural shifts and cyclical noise.",
+            ),
+            unsafe_allow_html=True,
+        )
         from src.explain import decompose_series
         with st.spinner("Decomposing series…"):
             try:
                 decomp = decompose_series(y, freq=freq_code)
-                c1, c2 = st.columns(2)
-                c1.metric("Trend Direction", decomp.trend_direction.capitalize())
-                c2.metric("Seasonality Strength", f"{decomp.seasonality_strength:.0%}")
+                d1, d2, d3 = st.columns(3)
+                d1.metric("Trend Direction", decomp.trend_direction.capitalize())
+                d2.metric("Seasonality Strength", f"{decomp.seasonality_strength:.0%}")
+                d3.metric("Data Points", len(y))
 
                 components = [
                     ("Observed", y, _COUNTRY_COLORS.get(country, _PRIMARY)),
@@ -1784,36 +2215,157 @@ def page_explainability():
                     margin=dict(l=60, r=20, t=30, b=40),
                 )
                 st.plotly_chart(fig, use_container_width=True)
+
+                # Decomposition narrative
+                trend_narrative = (
+                    "The trend component shows a clear long-run trajectory — this is the primary signal "
+                    "for strategic planning purposes."
+                    if abs(slope) > 0.2 else
+                    "The trend component is broadly flat, indicating structural stability in the medium term."
+                )
+                st.markdown(
+                    _exec_card("DECOMPOSITION INTERPRETATION", trend_narrative),
+                    unsafe_allow_html=True,
+                )
             except Exception as e:
                 st.warning(f"Decomposition not available: {e}")
 
-    # ── Confidence Intervals ─────────────────────────────────────────────────
-    with tab_ci:
-        _section("Prediction Interval Analysis")
-        widths = (hi - lo).values
-        horizon_labels = [f"H+{i+1}" for i in range(len(widths))]
+    # ── Tab 5: AI Transparency ────────────────────────────────────────────────
+    with tab_transparency:
+        _render_ai_transparency_tab(
+            country=country, ind=ind, meta=meta,
+            model_name=backtest.best_model_name,
+            smape=backtest.best_model_smape,
+            horizon=horizon,
+            conf_label=conf_cls.label,
+        )
 
-        fig = go.Figure(layout=_plotly_base("Prediction Interval Width by Horizon"))
-        fig.add_trace(go.Bar(
-            x=horizon_labels, y=widths,
-            marker_color=_PRIMARY,
-            text=[f"{w:.2f}pp" for w in widths],
-            textposition="outside",
-        ))
-        fig.update_layout(yaxis_title="Interval Width (pp)", height=300)
-        st.plotly_chart(fig, use_container_width=True)
 
+def _render_ai_transparency_tab(
+    country: str = "", ind: str = "", meta: dict = None,
+    model_name: str = "", smape: float = 0.0,
+    horizon: int = 0, conf_label: str = "",
+) -> None:
+    """Render the Responsible AI & Transparency section."""
+    _section("Responsible AI & Methodology")
+
+    t1, t2 = st.columns(2)
+    with t1:
         st.markdown(
-            _exec_card(
-                "🔭 UNCERTAINTY INTERPRETATION",
-                f'The <strong>{confidence*100:.0f}% prediction interval</strong> means that if model assumptions hold, '
-                f'{confidence*100:.0f}% of actual future values should fall within the shaded band. '
-                f'Wider intervals at longer horizons reflect compounding uncertainty — a natural property of all '
-                f'time-series forecasting models. Average interval width: '
-                f'<strong>{widths.mean():.2f} percentage points</strong>.',
+            _transparency_card(
+                "DATA SOURCES & PROVENANCE",
+                "<strong>Primary Source:</strong> World Bank Open Data API v2 (data.worldbank.org)<br>"
+                "<strong>Coverage:</strong> 6 GCC nations · 5 labour-market indicators · 2010–2024<br>"
+                "<strong>Indicators:</strong> Youth Unemployment Rate, GDP Growth, Inflation, "
+                "Population Growth, Internet Usage<br>"
+                "<strong>Update Frequency:</strong> Annual (World Bank publication cycle)<br>"
+                "<strong>Data Integrity:</strong> Missing values handled via linear interpolation; "
+                "outliers preserved to maintain structural integrity.",
+                "#1B4F72",
             ),
             unsafe_allow_html=True,
         )
+        st.markdown(
+            _transparency_card(
+                "FORECASTING METHODOLOGY",
+                "<strong>Approach:</strong> Multi-model ensemble selection via expanding-window cross-validation<br>"
+                "<strong>Candidate Models:</strong> Naïve, Seasonal Naïve, Moving Average, Drift, "
+                "SARIMAX (auto-order), LightGBM (gradient boosting)<br>"
+                "<strong>Selection Criterion:</strong> Lowest sMAPE on holdout folds<br>"
+                "<strong>Prediction Intervals:</strong> Computed from model residual standard deviation, "
+                f"adjusted to the selected confidence level ({int(confidence * 100) if confidence else 80}%)<br>"
+                "<strong>Elasticity Scenarios:</strong> Applied as linear ramps over the forecast horizon.",
+                "#1A7A4A",
+            ),
+            unsafe_allow_html=True,
+        )
+        st.markdown(
+            _transparency_card(
+                "AI INTERPRETATION GUIDANCE",
+                "This platform generates <strong>AI-assisted intelligence narratives</strong> — "
+                "structured, template-based interpretations grounded in statistical evidence and "
+                "GCC domain knowledge. They are designed to <em>support</em> policymaker judgment, "
+                "not replace it.<br><br>"
+                "Risk classifications, strategic alerts, and scenario intelligence are derived from "
+                "data patterns and contextual heuristics. They represent probabilistic assessments, "
+                "not deterministic predictions.",
+                "#C07820",
+            ),
+            unsafe_allow_html=True,
+        )
+
+    with t2:
+        st.markdown(
+            _transparency_card(
+                "FORECAST LIMITATIONS",
+                "<ul style='margin:0;padding-left:1.2rem;font-size:0.86rem;line-height:1.8;'>"
+                "<li>Forecasts are <strong>scenario-dependent</strong> — they reflect statistical patterns in historical data.</li>"
+                "<li>Long-term projections (≥3 years) carry <strong>elevated uncertainty</strong> under volatile macroeconomic conditions.</li>"
+                "<li>External shocks — geopolitical disruptions, oil price crises, pandemics — are <strong>not modelled</strong> and may significantly alter outcomes.</li>"
+                "<li>Annual data series (2010–2024) limit the number of training observations, which may affect model precision.</li>"
+                "<li>Structural breaks (e.g., post-2020 COVID recovery) may reduce the predictive validity of historical patterns.</li>"
+                "<li>Country-level results should be interpreted alongside <strong>national policy context</strong> and expert judgement.</li>"
+                "</ul>",
+                "#A93226",
+            ),
+            unsafe_allow_html=True,
+        )
+        st.markdown(
+            _transparency_card(
+                "RESPONSIBLE DECISION SUPPORT",
+                "This platform is designed in accordance with principles of <strong>responsible AI for public-sector use</strong>:<br><br>"
+                "<strong>Transparency:</strong> All modelling choices and data sources are documented and accessible.<br>"
+                "<strong>Interpretability:</strong> Forecasts include confidence classifications, driver narratives, "
+                "and plain-language explanations accessible to non-technical policymakers.<br>"
+                "<strong>Accountability:</strong> Forecast limitations are prominently communicated. "
+                "The platform encourages scenario testing and sensitivity analysis.<br>"
+                "<strong>Human Oversight:</strong> AI narratives are advisory. Strategic decisions must remain "
+                "the responsibility of qualified domain experts and government officials.<br>"
+                "<strong>Evidence-Based:</strong> All intelligence is grounded in verified World Bank statistical data.",
+                "#6C3483",
+            ),
+            unsafe_allow_html=True,
+        )
+        st.markdown(
+            _transparency_card(
+                "BILINGUAL REPORTING STANDARD",
+                "Executive reports are generated in both <strong>English</strong> and <strong>Arabic</strong> "
+                "to serve GCC multilingual policy environments. Arabic narratives follow RTL formatting standards "
+                "and use formal Modern Standard Arabic (MSA) appropriate for government and ministerial audiences.<br><br>"
+                "Translations are <strong>template-based and data-driven</strong>, ensuring consistency "
+                "between the English and Arabic intelligence outputs.",
+                "#1B4F72",
+            ),
+            unsafe_allow_html=True,
+        )
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    _section("Forecast Caveats")
+    caveats = [
+        "Forecasts are scenario-dependent and are designed to <strong>support — not replace</strong> evidence-based strategic decision-making.",
+        "Long-term projections contain <strong>elevated uncertainty</strong> under volatile macroeconomic or geopolitical conditions.",
+        "External shocks (oil price volatility, regional conflicts, global recessions) are not captured by the statistical models.",
+        "Confidence intervals represent <strong>statistical bounds</strong>, not guaranteed outcome ranges.",
+        "Model performance is measured on historical data; future structural changes may reduce forecast accuracy.",
+        "GCC comparative analysis uses the most recent available World Bank data, which may not reflect the latest policy changes.",
+    ]
+    for caveat in caveats:
+        st.markdown(_caveat_strip(caveat), unsafe_allow_html=True)
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown(
+        f'<div style="background:rgba(27,79,114,0.06);border-radius:12px;padding:1.2rem 1.5rem;'
+        f'border:1px solid rgba(27,79,114,0.12);font-size:0.80rem;color:#444;line-height:1.7;">'
+        f'<strong style="color:{_PRIMARY};">Platform Governance Statement</strong><br>'
+        f'The GCC Youth Employment Intelligence Platform was developed to support evidence-based policymaking '
+        f'through transparent and interpretable AI-assisted analytics. All outputs are grounded in verified '
+        f'World Bank Open Data and are subject to the limitations inherent in time-series statistical modelling. '
+        f'This platform does not constitute financial, legal, or policy advice. Strategic decisions should '
+        f'incorporate additional expert judgment, domain knowledge, and current-events intelligence beyond '
+        f'what historical data patterns can capture.'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
 
 
 # ──────────────────────────────────────────────────────────────────────────────

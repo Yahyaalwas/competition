@@ -1137,3 +1137,355 @@ def format_arabic_executive_report(report: IntelligenceReport) -> str:
         "═" * 65,
     ]
     return "\n".join(lines)
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Priority 5 — Explainability & Trust Intelligence
+# ──────────────────────────────────────────────────────────────────────────────
+
+@dataclass
+class ConfidenceClassification:
+    label: str          # "High Confidence" | "Moderate Confidence" | "Elevated Uncertainty" | "Volatile Outlook" | "Unstable Forecast"
+    label_ar: str
+    score: int          # 0–100
+    color: str          # hex
+    tier: str           # "A" | "B" | "C" | "D" | "E"
+    explanation_en: str
+    explanation_ar: str
+
+
+@dataclass
+class DriverInsight:
+    rank: int
+    feature_name: str
+    label_en: str
+    label_ar: str
+    direction: str       # "positive" | "negative" | "neutral"
+    direction_ar: str
+    influence_pct: float
+    explanation_en: str
+    explanation_ar: str
+
+
+# LightGBM feature name → (EN label, AR label, positive_means, explanation_en, explanation_ar)
+_FEATURE_NARRATIVE: Dict[str, tuple] = {
+    "lag_1":       ("Recent Historical Level",      "المستوى التاريخي الأخير",
+                    True,
+                    "The most recent observed value — strongest direct autocorrelation signal.",
+                    "أحدث قيمة مرصودة — أقوى إشارة ارتباط ذاتي مباشر."),
+    "lag_2":       ("2-Period Lag",                 "التأخر بفترتين",
+                    True,
+                    "Captures short-term momentum from two periods prior.",
+                    "يلتقط الزخم قصير المدى من فترتين سابقتين."),
+    "lag_3":       ("3-Period Lag",                 "التأخر بثلاث فترات",
+                    True,
+                    "Early echo of trend reversals from three periods back.",
+                    "صدى مبكر لانعكاسات الاتجاه من ثلاث فترات سابقة."),
+    "lag_6":       ("6-Period Memory",              "الذاكرة لست فترات",
+                    True,
+                    "Medium-term historical pattern — captures semi-annual cycles.",
+                    "النمط التاريخي متوسط المدى — يلتقط الدورات نصف السنوية."),
+    "lag_12":      ("12-Period Annual Memory",      "الذاكرة السنوية (12 فترة)",
+                    True,
+                    "Annual cycle memory — strongly predictive for annual frequency data.",
+                    "ذاكرة الدورة السنوية — تنبؤية بقوة للبيانات السنوية التواتر."),
+    "roll_mean_3": ("Short-Term Trend Momentum",    "زخم الاتجاه قصير المدى",
+                    True,
+                    "3-period rolling average — captures local trend acceleration or deceleration.",
+                    "المتوسط المتحرك لـ3 فترات — يلتقط تسارع أو تباطؤ الاتجاه المحلي."),
+    "roll_mean_6": ("Medium-Term Structural Trend", "الاتجاه الهيكلي متوسط المدى",
+                    True,
+                    "6-period rolling average — reflects sustained policy or macro-economic shifts.",
+                    "المتوسط المتحرك لـ6 فترات — يعكس التحولات السياسية أو الاقتصادية الكلية المستدامة."),
+    "roll_mean_12":("Long-Term Structural Signal",  "الإشارة الهيكلية طويلة المدى",
+                    True,
+                    "12-period rolling average — captures deep structural economic trends.",
+                    "المتوسط المتحرك لـ12 فترة — يلتقط الاتجاهات الاقتصادية الهيكلية العميقة."),
+    "roll_std_3":  ("Recent Volatility",            "التذبذب الأخير",
+                    False,
+                    "3-period rolling standard deviation — elevated values signal forecast instability.",
+                    "الانحراف المعياري المتحرك لـ3 فترات — القيم المرتفعة تُشير إلى عدم استقرار التنبؤ."),
+    "roll_std_6":  ("Medium-Term Volatility",       "التذبذب متوسط المدى",
+                    False,
+                    "6-period volatility — persistent instability dampens forecast confidence.",
+                    "تذبذب الست فترات — عدم الاستقرار المستمر يُضعف ثقة التنبؤ."),
+    "roll_std_12": ("Long-Term Stability Signal",   "إشارة الاستقرار طويلة المدى",
+                    False,
+                    "12-period volatility — high values indicate structural instability across economic cycles.",
+                    "تذبذب 12 فترة — القيم المرتفعة تُشير إلى عدم استقرار هيكلي عبر الدورات الاقتصادية."),
+    "year_idx":    ("Structural Time Trend",        "الاتجاه الزمني الهيكلي",
+                    True,
+                    "Long-run structural drift — captures transformational reform impacts over years.",
+                    "الانجراف الهيكلي طويل الأمد — يلتقط آثار الإصلاحات التحولية عبر السنوات."),
+    "month":       ("Seasonal Employment Cycle",    "الدورة الموسمية للتوظيف",
+                    True,
+                    "Intra-year seasonality — graduation cycles, fiscal-year hiring waves, and seasonal demand.",
+                    "الموسمية داخل العام — دورات التخرج وموجات التوظيف السنوية والطلب الموسمي."),
+    "quarter":     ("Quarterly Seasonal Pattern",   "النمط الموسمي الفصلي",
+                    True,
+                    "Quarterly cyclicality — fiscal quarter-driven hiring and policy implementation rhythms.",
+                    "الدورية الفصلية — التوظيف المدفوع بالربع المالي وإيقاعات تنفيذ السياسات."),
+}
+
+
+def compute_confidence_classification(
+    smape: float,
+    interval_width_mean: float,
+    volatility: float,
+    horizon: int,
+) -> ConfidenceClassification:
+    """Compute a trust-oriented confidence classification from model and data quality signals."""
+    score = 70
+
+    # sMAPE contribution
+    if smape < 5:
+        score += 20
+    elif smape < 12:
+        score += 8
+    elif smape < 20:
+        score -= 8
+    else:
+        score -= 22
+
+    # Horizon contribution (longer = more uncertain)
+    if horizon <= 2:
+        score += 10
+    elif horizon <= 3:
+        score += 3
+    elif horizon <= 5:
+        score -= 5
+    else:
+        score -= 12
+
+    # Interval width contribution
+    if interval_width_mean < 1.5:
+        score += 8
+    elif interval_width_mean < 3.0:
+        score += 2
+    elif interval_width_mean < 5.0:
+        score -= 5
+    else:
+        score -= 12
+
+    # Volatility contribution
+    if volatility < 10:
+        score += 5
+    elif volatility < 20:
+        pass
+    else:
+        score -= 8
+
+    score = max(10, min(100, score))
+
+    if score >= 85:
+        label = "High Confidence"
+        label_ar = "ثقة عالية"
+        color = "#1A7A4A"
+        tier = "A"
+        explanation_en = (
+            f"The model achieves strong predictive accuracy (sMAPE {smape:.1f}%) with a "
+            f"{horizon}-period horizon and narrow prediction intervals. "
+            "Forecasts are statistically robust and suitable for strategic planning."
+        )
+        explanation_ar = (
+            f"يحقق النموذج دقة تنبؤية عالية (sMAPE {smape:.1f}%) بأفق {horizon} فترات "
+            "وفترات تنبؤ ضيقة. التوقعات متينة إحصائيًا وملائمة للتخطيط الاستراتيجي."
+        )
+    elif score >= 70:
+        label = "Moderate Confidence"
+        label_ar = "ثقة معتدلة"
+        color = "#1B4F72"
+        tier = "B"
+        explanation_en = (
+            f"The model shows reliable performance (sMAPE {smape:.1f}%) with manageable "
+            f"uncertainty across the {horizon}-period horizon. "
+            "Results are directionally sound; scenario sensitivity analysis is recommended."
+        )
+        explanation_ar = (
+            f"يُظهر النموذج أداءً موثوقًا (sMAPE {smape:.1f}%) مع عدم يقين قابل للإدارة "
+            f"عبر أفق {horizon} فترات. النتائج سليمة اتجاهيًا؛ يُوصى بتحليل حساسية السيناريوهات."
+        )
+    elif score >= 55:
+        label = "Elevated Uncertainty"
+        label_ar = "شُحّ اليقين"
+        color = "#C07820"
+        tier = "C"
+        explanation_en = (
+            f"Forecast uncertainty is elevated (sMAPE {smape:.1f}%, horizon {horizon} periods). "
+            "Directional trends remain informative, but point estimates carry meaningful uncertainty. "
+            "Use alongside scenario simulation for robust planning."
+        )
+        explanation_ar = (
+            f"عدم اليقين في التنبؤ مرتفع (sMAPE {smape:.1f}%، أفق {horizon} فترات). "
+            "الاتجاهات لا تزال مفيدة، لكن التقديرات النقطية تحمل شكًا ذا معنى. "
+            "يُستحسن استخدامها جنبًا إلى جنب مع محاكاة السيناريوهات."
+        )
+    elif score >= 40:
+        label = "Volatile Outlook"
+        label_ar = "توقعات متقلبة"
+        color = "#A93226"
+        tier = "D"
+        explanation_en = (
+            f"High model uncertainty (sMAPE {smape:.1f}%) and elevated data volatility "
+            f"limit forecast reliability across the {horizon}-period horizon. "
+            "Treat point forecasts as indicative only; scenario analysis is essential."
+        )
+        explanation_ar = (
+            f"يُقيّد عدم يقين النموذج المرتفع (sMAPE {smape:.1f}%) والتذبذب الكبير في البيانات "
+            f"موثوقية التنبؤ عبر أفق {horizon} فترات. "
+            "اعتبر التنبؤات النقطية إرشادية فقط؛ تحليل السيناريوهات ضروري."
+        )
+    else:
+        label = "Unstable Forecast"
+        label_ar = "توقعات غير مستقرة"
+        color = "#7B241C"
+        tier = "E"
+        explanation_en = (
+            f"Forecast stability is low (sMAPE {smape:.1f}%, score {score}/100). "
+            "The data series exhibits high structural volatility. "
+            "Results should be treated with significant caution and validated against domain expertise."
+        )
+        explanation_ar = (
+            f"استقرار التنبؤ منخفض (sMAPE {smape:.1f}%، نتيجة {score}/100). "
+            "تُظهر السلسلة الزمنية تذبذبًا هيكليًا عاليًا. "
+            "ينبغي التعامل مع النتائج بحذر بالغ والتحقق منها بخبرة القطاع."
+        )
+
+    return ConfidenceClassification(
+        label=label, label_ar=label_ar, score=score, color=color,
+        tier=tier, explanation_en=explanation_en, explanation_ar=explanation_ar,
+    )
+
+
+def interpret_feature_importance(
+    feature_importances: "pd.Series",
+    indicator: str,
+    improving: bool,
+) -> List[DriverInsight]:
+    """
+    Convert raw LightGBM feature importances into executive-readable driver insights.
+    Returns top-8 drivers with directional interpretation and policy narrative.
+    """
+    total = feature_importances.sum()
+    if total == 0:
+        return []
+
+    lib = True  # lower-is-better default; most indicators are lower-is-better
+    try:
+        from src.gcc_data import INDICATORS
+        lib = INDICATORS.get(indicator, {}).get("lower_is_better", True)
+    except Exception:
+        pass
+
+    insights: List[DriverInsight] = []
+    for rank, (feat, imp) in enumerate(feature_importances.head(8).items(), start=1):
+        pct = float(imp) / float(total) * 100
+        narrative = _FEATURE_NARRATIVE.get(feat)
+
+        if narrative:
+            label_en, label_ar, pos_means, expl_en, expl_ar = narrative
+        else:
+            # Fallback for any lag not explicitly listed
+            label_en = feat.replace("_", " ").title()
+            label_ar = feat.replace("_", " ")
+            pos_means = True
+            expl_en = "Historical pattern feature contributing to model predictions."
+            expl_ar = "ميزة النمط التاريخي المساهمة في تنبؤات النموذج."
+
+        # Volatility/std features: high importance + worsening trend = negative signal
+        is_vol = "std" in feat
+        if is_vol:
+            direction = "negative"
+            direction_ar = "سلبي"
+        else:
+            # For most features: improving context = positive direction
+            direction = "positive" if improving else "neutral"
+            direction_ar = "إيجابي" if improving else "محايد"
+
+        insights.append(DriverInsight(
+            rank=rank,
+            feature_name=feat,
+            label_en=label_en,
+            label_ar=label_ar,
+            direction=direction,
+            direction_ar=direction_ar,
+            influence_pct=round(pct, 1),
+            explanation_en=expl_en,
+            explanation_ar=expl_ar,
+        ))
+
+    return insights
+
+
+def compute_model_quality_tier(smape: float, model_name: str) -> Dict:
+    """Return a human-readable model quality interpretation dict."""
+    if smape < 5:
+        tier = "Excellent"
+        tier_ar = "ممتاز"
+        color = "#1A7A4A"
+        badge = "A+"
+        rationale_en = (
+            f"{model_name} achieved exceptional predictive accuracy (sMAPE {smape:.1f}%). "
+            "This level of accuracy supports high-confidence strategic planning."
+        )
+        rationale_ar = (
+            f"حقّق {model_name} دقة تنبؤية استثنائية (sMAPE {smape:.1f}%). "
+            "هذا المستوى من الدقة يدعم التخطيط الاستراتيجي عالي الثقة."
+        )
+        stability = "High stability — forecasts are reliable across the projection horizon."
+        stability_ar = "استقرار عالٍ — التوقعات موثوقة عبر أفق الإسقاط."
+    elif smape < 12:
+        tier = "Good"
+        tier_ar = "جيد"
+        color = "#1B4F72"
+        badge = "B"
+        rationale_en = (
+            f"{model_name} demonstrates solid performance (sMAPE {smape:.1f}%). "
+            "Forecasts are directionally reliable with manageable uncertainty bands."
+        )
+        rationale_ar = (
+            f"يُظهر {model_name} أداءً متينًا (sMAPE {smape:.1f}%). "
+            "التوقعات موثوقة اتجاهيًا مع فرق عدم يقين قابلة للإدارة."
+        )
+        stability = "Moderate stability — directional trends are reliable; point estimates carry some uncertainty."
+        stability_ar = "استقرار معتدل — الاتجاهات موثوقة؛ التقديرات النقطية تحمل بعض الشك."
+    elif smape < 25:
+        tier = "Moderate"
+        tier_ar = "معتدل"
+        color = "#C07820"
+        badge = "C"
+        rationale_en = (
+            f"{model_name} shows moderate accuracy (sMAPE {smape:.1f}%). "
+            "This may reflect underlying data volatility or structural breaks. "
+            "Use forecasts for directional guidance rather than precise point estimates."
+        )
+        rationale_ar = (
+            f"يُظهر {model_name} دقة معتدلة (sMAPE {smape:.1f}%). "
+            "قد يعكس ذلك تذبذبًا في البيانات أو تحولات هيكلية. "
+            "استخدم التوقعات للتوجيه الاتجاهي لا للتقديرات النقطية الدقيقة."
+        )
+        stability = "Reduced stability — data volatility or structural breaks are limiting precision."
+        stability_ar = "استقرار منخفض — تذبذب البيانات أو التحولات الهيكلية تُقيّد الدقة."
+    else:
+        tier = "Limited"
+        tier_ar = "محدود"
+        color = "#A93226"
+        badge = "D"
+        rationale_en = (
+            f"{model_name} achieved limited accuracy (sMAPE {smape:.1f}%) on this dataset. "
+            "High volatility or structural irregularities constrain model performance. "
+            "Results should be interpreted with significant caution."
+        )
+        rationale_ar = (
+            f"حقّق {model_name} دقة محدودة (sMAPE {smape:.1f}%) على هذه البيانات. "
+            "يُقيّد التذبذب العالي أو الشذوذات الهيكلية أداء النموذج. "
+            "ينبغي تفسير النتائج بحذر بالغ."
+        )
+        stability = "Low stability — treat outputs as indicative only; scenario analysis is essential."
+        stability_ar = "استقرار منخفض — اعتبر النتائج إرشادية فقط؛ تحليل السيناريوهات ضروري."
+
+    return {
+        "tier": tier, "tier_ar": tier_ar, "color": color, "badge": badge,
+        "rationale_en": rationale_en, "rationale_ar": rationale_ar,
+        "stability_en": stability, "stability_ar": stability_ar,
+    }
