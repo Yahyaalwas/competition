@@ -375,6 +375,70 @@ div[data-testid="metric-container"] {{
 ::-webkit-scrollbar-thumb {{ background: #B8CCE0; border-radius: 4px; }}
 ::-webkit-scrollbar-thumb:hover {{ background: {_PRIMARY}; }}
 
+/* ══ Demo guide & next-step CTA (Priority 6) ════════════════════════════════ */
+.demo-guide-card {{
+    background: linear-gradient(135deg, #F5F8FD 0%, #EEF3FB 100%);
+    border-radius: 16px; padding: 1.8rem 2rem; margin-bottom: 1.5rem;
+    border: 1.5px solid rgba(27,79,114,0.14);
+    box-shadow: 0 4px 20px rgba(27,79,114,0.08);
+}}
+.demo-guide-title {{
+    font-size: 1.1rem; font-weight: 800; color: {_PRIMARY}; margin-bottom: 0.4rem;
+}}
+.demo-guide-sub {{
+    font-size: 0.87rem; color: #555; line-height: 1.6; margin-bottom: 1rem;
+}}
+.demo-steps {{
+    display: flex; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 1.2rem;
+}}
+.demo-step {{
+    display: flex; align-items: center; gap: 8px;
+    background: white; border-radius: 8px; padding: 0.5rem 0.75rem;
+    border: 1px solid rgba(27,79,114,0.1); font-size: 0.78rem;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+}}
+.demo-step-num {{
+    width: 20px; height: 20px; border-radius: 50%;
+    background: {_PRIMARY}; color: white;
+    font-size: 0.65rem; font-weight: 800;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}}
+.next-step-cta {{
+    background: linear-gradient(135deg, {_PRIMARY} 0%, #2874A6 100%);
+    border-radius: 12px; padding: 1rem 1.4rem; margin-top: 2rem;
+    color: white; display: flex; align-items: center; justify-content: space-between;
+    box-shadow: 0 4px 18px rgba(27,79,114,0.28);
+}}
+.next-step-label {{
+    font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.8px;
+    opacity: 0.75; margin-bottom: 3px;
+}}
+.next-step-title {{ font-size: 1.0rem; font-weight: 800; }}
+.next-step-arrow {{ font-size: 1.6rem; opacity: 0.8; }}
+.quick-demo-bar {{
+    background: linear-gradient(135deg, #EAFAF1 0%, #F5FBF8 100%);
+    border-radius: 10px; padding: 0.75rem 1.1rem; margin-bottom: 1rem;
+    border: 1px solid rgba(26,122,74,0.2);
+    display: flex; align-items: center; gap: 1rem;
+}}
+.story-panel {{
+    background: white; border-radius: 14px; padding: 1.4rem 1.6rem;
+    box-shadow: 0 4px 20px rgba(27,79,114,0.08);
+    border: 1px solid rgba(27,79,114,0.07); margin-bottom: 1.5rem;
+}}
+.story-panel-title {{
+    font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.9px;
+    color: {_GOLD}; font-weight: 700; margin-bottom: 0.5rem;
+}}
+.impact-stat-row {{
+    display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem;
+}}
+.impact-stat {{
+    flex: 1; min-width: 120px; background: {_LIGHT_BG}; border-radius: 10px;
+    padding: 0.8rem 1rem; text-align: center; border: 1px solid rgba(27,79,114,0.06);
+}}
+.impact-stat-num {{ font-size: 1.5rem; font-weight: 900; color: {_PRIMARY}; }}
+.impact-stat-lbl {{ font-size: 0.67rem; color: #777; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }}
 /* ══ Trust & confidence panel (Priority 5) ═══════════════════════════════════ */
 .trust-header {{
     background: linear-gradient(135deg, #091320 0%, #0D2A42 40%, #1B4F72 100%);
@@ -526,7 +590,23 @@ with st.sidebar:
         label_visibility="collapsed",
     )
 
-    st.markdown("---")
+    st.markdown("""
+    <div style="background:rgba(195,155,78,0.08);border:1px solid rgba(195,155,78,0.22);
+                border-radius:10px;padding:0.7rem 0.9rem;margin:0.6rem 0;font-size:0.69rem;
+                line-height:1.7;color:rgba(255,255,255,0.75);">
+        <div style="font-weight:700;font-size:0.65rem;text-transform:uppercase;
+                    letter-spacing:0.8px;color:#E8C96E;margin-bottom:6px;">
+            📋 Demo Flow
+        </div>
+        <div>1 · Regional overview &amp; KPIs</div>
+        <div>2 · Country deep-dive</div>
+        <div>3 · Run AI forecast</div>
+        <div>4 · Read AI intelligence</div>
+        <div>5 · Simulate scenarios</div>
+        <div>6 · Review explainability</div>
+    </div>
+    """, unsafe_allow_html=True)
+
     st.markdown("---")
 
     # ── Data source & refresh ─────────────────────────────────────────────────
@@ -566,9 +646,10 @@ with st.sidebar:
         st.warning("⚠ No local cache. Click **Refresh Data** to fetch from World Bank.", icon="⚠️")
 
     st.markdown(
-        '<div style="font-size:0.62rem; opacity:0.38; padding-top:0.9rem; text-align:center;">'
-        '© 2025 GCC Statistical Intelligence Platform<br>'
-        'Powered by World Bank Open Data'
+        '<div style="font-size:0.62rem; opacity:0.42; padding-top:0.9rem; text-align:center; line-height:1.6;">'
+        '<strong style="color:#E8C96E;opacity:0.7;">GCC AI Intelligence Platform</strong><br>'
+        'World Bank Open Data · 6 Nations · 5 Indicators<br>'
+        '<span style="opacity:0.6;">AI-assisted policy analytics for GCC decision-makers</span>'
         '</div>',
         unsafe_allow_html=True,
     )
@@ -729,6 +810,33 @@ def _scenario_section(title: str, body: str, border_color: str = "#1B4F72") -> s
         f'<div class="scenario-section" style="border-left-color:{border_color};">'
         f'<div class="scenario-section-title">{title}</div>'
         f'{body}'
+        f'</div>'
+    )
+
+
+def _next_step_cta(page_label: str, hint: str) -> str:
+    return (
+        f'<div class="next-step-cta">'
+        f'<div>'
+        f'<div class="next-step-label">Next Step</div>'
+        f'<div class="next-step-title">{page_label} →</div>'
+        f'<div style="font-size:0.78rem;opacity:0.72;margin-top:2px;">{hint}</div>'
+        f'</div>'
+        f'<div class="next-step-arrow">›</div>'
+        f'</div>'
+    )
+
+
+def _empty_state_card(icon: str, title: str, body: str, tip: str) -> str:
+    return (
+        f'<div class="demo-guide-card">'
+        f'<div style="font-size:2.5rem;line-height:1;margin-bottom:0.6rem;">{icon}</div>'
+        f'<div class="demo-guide-title">{title}</div>'
+        f'<div class="demo-guide-sub">{body}</div>'
+        f'<div style="background:rgba(27,79,114,0.07);border-radius:8px;padding:0.65rem 0.9rem;'
+        f'font-size:0.80rem;color:{_PRIMARY};font-weight:600;">'
+        f'💡 {tip}'
+        f'</div>'
         f'</div>'
     )
 
@@ -908,6 +1016,28 @@ def page_gcc_overview():
     </div>
     """, unsafe_allow_html=True)
 
+    # ── Platform story intro ─────────────────────────────────────────────────
+    st.markdown(
+        f'<div class="story-panel">'
+        f'<div class="story-panel-title">PLATFORM OVERVIEW — WHAT THIS PLATFORM DOES</div>'
+        f'<div style="font-size:0.88rem;color:#333;line-height:1.7;">'
+        f'This platform delivers <strong>AI-powered strategic intelligence</strong> for GCC youth labour-market '
+        f'policy planning. It combines <strong>real World Bank data</strong>, '
+        f'<strong>multi-model time-series forecasting</strong>, and <strong>AI-generated bilingual insights</strong> '
+        f'to help policymakers answer: <em>Where are we? Where are we heading? What should we do?</em>'
+        f'</div>'
+        f'<div class="impact-stat-row">'
+        f'<div class="impact-stat"><div class="impact-stat-num">6</div><div class="impact-stat-lbl">GCC Nations</div></div>'
+        f'<div class="impact-stat"><div class="impact-stat-num">5</div><div class="impact-stat-lbl">WB Indicators</div></div>'
+        f'<div class="impact-stat"><div class="impact-stat-num">14+</div><div class="impact-stat-lbl">Years of Data</div></div>'
+        f'<div class="impact-stat"><div class="impact-stat-num">6</div><div class="impact-stat-lbl">AI Models</div></div>'
+        f'<div class="impact-stat"><div class="impact-stat-num">8</div><div class="impact-stat-lbl">Scenarios</div></div>'
+        f'<div class="impact-stat"><div class="impact-stat-num">2</div><div class="impact-stat-lbl">Languages</div></div>'
+        f'</div>'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
+
     ind = st.selectbox(
         "Select Indicator",
         list(gcc_data.INDICATORS.keys()),
@@ -1055,6 +1185,15 @@ def page_gcc_overview():
             f'</div>',
             unsafe_allow_html=True,
         )
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown(
+        _next_step_cta(
+            "🔍 Country Explorer",
+            "Select a GCC nation for deep-dive historical analysis, all-indicators snapshot, and AI intelligence assessment."
+        ),
+        unsafe_allow_html=True,
+    )
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -1219,6 +1358,15 @@ def page_country_explorer():
                 unsafe_allow_html=True,
             )
 
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown(
+        _next_step_cta(
+            "📈 Forecast Center",
+            f"Run an AI forecast for {country} to generate predictive intelligence and model confidence scores."
+        ),
+        unsafe_allow_html=True,
+    )
+
 
 # ──────────────────────────────────────────────────────────────────────────────
 # PAGE 3 – Forecast Center
@@ -1229,6 +1377,27 @@ def page_forecast_center():
         "📈 AI Forecast Center",
         "Time-series forecasting · Expanding-window cross-validation · Six model ensemble · Probabilistic prediction intervals",
     )
+
+    # ── Quick demo shortcut ────────────────────────────────────────────────
+    st.markdown(
+        '<div class="quick-demo-bar">'
+        '<div style="font-size:1.1rem;">⚡</div>'
+        '<div style="flex:1;">'
+        '<div style="font-weight:700;font-size:0.85rem;color:#1A7A4A;">Quick Demo</div>'
+        '<div style="font-size:0.77rem;color:#555;">Pre-configured: Saudi Arabia · Youth Unemployment · 3-year forecast</div>'
+        '</div>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+    demo_col, _ = st.columns([1, 4])
+    if demo_col.button("▶ Run Demo Forecast", type="primary", use_container_width=True):
+        st.session_state["fc_country"] = "Saudi Arabia"
+        st.session_state["fc_ind"] = "youth_unemployment_rate"
+        st.session_state["fc_freq"] = "Annual"
+        st.session_state["fc_horizon"] = 3
+        st.session_state["fc_conf"] = 0.80
+        st.session_state["_run_demo"] = True
+        st.rerun()
 
     # ── Config ───────────────────────────────────────────────────────────────
     cfg1, cfg2, cfg3, cfg4 = st.columns(4)
@@ -1256,8 +1425,12 @@ def page_forecast_center():
     run_col, _ = st.columns([1, 4])
     run = run_col.button("🚀 Run Forecast", type="primary", use_container_width=True)
 
-    if run or "fc_results" in st.session_state:
-        if run:
+    # Auto-run triggered by demo button
+    run_demo = st.session_state.pop("_run_demo", False)
+    trigger_run = run or run_demo
+
+    if trigger_run or "fc_results" in st.session_state:
+        if trigger_run:
             with st.spinner("Running backtesting and model selection…"):
                 try:
                     y, fc, lo, hi, backtest, best_model = _run_forecast(
@@ -1372,8 +1545,42 @@ def page_forecast_center():
                 f"Upper ({confidence*100:.0f}%)": hi.values.round(2),
             })
             st.dataframe(fc_df, use_container_width=True, hide_index=True)
+            dl_col1, dl_col2 = st.columns(2)
             csv = fc_df.to_csv(index=False).encode()
-            st.download_button("⬇ Download Forecast CSV", csv, "forecast.csv", "text/csv")
+            dl_col1.download_button(
+                "⬇ Download Forecast CSV", csv,
+                f"{country}_{ind}_forecast.csv", "text/csv",
+                use_container_width=True,
+            )
+            # Executive summary text export
+            exec_txt = (
+                f"GCC AI Intelligence Platform — Forecast Export\n"
+                f"{'='*55}\n"
+                f"Country: {country}\n"
+                f"Indicator: {meta['name']}\n"
+                f"Best Model: {backtest.best_model_name}  |  sMAPE: {backtest.best_model_smape:.2f}%\n"
+                f"Horizon: {horizon} periods  |  Confidence: {confidence*100:.0f}%\n"
+                f"{'='*55}\n\n"
+                f"Forecast Values:\n"
+                + fc_df.to_string(index=False)
+                + f"\n\n{'='*55}\n"
+                f"Source: World Bank Open Data  |  Generated: GCC Intelligence Platform\n"
+                f"Caveat: Forecasts support — not replace — strategic decision-making.\n"
+            )
+            dl_col2.download_button(
+                "⬇ Download Executive Brief (TXT)", exec_txt.encode(),
+                f"{country}_{ind}_executive_brief.txt", "text/plain",
+                use_container_width=True,
+            )
+
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown(
+            _next_step_cta(
+                "🤖 AI Insights",
+                f"Generate AI strategic intelligence — risk classification, bilingual analysis, and policy recommendations for {country}."
+            ),
+            unsafe_allow_html=True,
+        )
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -1387,7 +1594,17 @@ def page_ai_insights():
     )
 
     if "fc_results" not in st.session_state or "fc_meta" not in st.session_state:
-        st.info("💡 Run a forecast in the **Forecast Center** first to generate AI insights.")
+        st.markdown(
+            _empty_state_card(
+                "🤖",
+                "AI Decision Intelligence — Run a Forecast First",
+                "This page generates ministry-grade bilingual intelligence reports including "
+                "risk classification, strategic alerts, causal driver analysis, comparative GCC "
+                "benchmarking, and policy recommendations — all driven by your forecast results.",
+                "Navigate to 📈 Forecast Center, run a forecast, then return here for the full AI intelligence briefing.",
+            ),
+            unsafe_allow_html=True,
+        )
         return
 
     y, fc, lo, hi, backtest, best_model = st.session_state["fc_results"]
@@ -1533,12 +1750,52 @@ def page_ai_insights():
 
         # Download
         ar_report_text = intel_module.format_arabic_executive_report(report)
-        st.download_button(
+        dl_a1, dl_a2 = st.columns(2)
+        dl_a1.download_button(
             "⬇ تحميل التقرير العربي الكامل",
             ar_report_text.encode("utf-8"),
-            "gcc_executive_report_ar.txt",
+            f"{country}_{ind}_executive_report_ar.txt",
             "text/plain",
+            use_container_width=True,
         )
+        # English executive report download
+        en_report = (
+            f"GCC AI Intelligence Platform — Executive Intelligence Report\n"
+            f"{'='*60}\n"
+            f"Country: {country}  |  Indicator: {report.indicator_name}\n"
+            f"Risk Profile: {report.risk_profile.label}  |  Trend: {report.trend_label}\n"
+            f"Model: {report.model_name}  |  sMAPE: {report.model_smape:.2f}%\n"
+            f"{'='*60}\n\n"
+            f"EXECUTIVE SUMMARY\n{'-'*40}\n{report.executive_summary}\n\n"
+            f"KEY INSIGHTS\n{'-'*40}\n"
+            + "\n".join(f"• {i}" for i in report.key_insights)
+            + f"\n\nRISK ASSESSMENT\n{'-'*40}\n"
+            + "\n".join(f"• {r}" for r in report.risk_assessment)
+            + f"\n\nGCC COMPARISON\n{'-'*40}\n{report.gcc_comparison}\n\n"
+            f"CAUSAL INTERPRETATION\n{'-'*40}\n{report.causal_interpretation}\n\n"
+            f"STRATEGIC RECOMMENDATIONS\n{'-'*40}\n"
+            + "\n".join(f"• {r}" for r in report.policy_recommendations)
+            + f"\n\nFORECAST OUTLOOK\n{'-'*40}\n{report.forecast_outlook}\n\n"
+            f"{'='*60}\n"
+            f"Source: World Bank Open Data  |  GCC AI Intelligence Platform\n"
+            f"Caveat: AI-assisted analysis supports — not replaces — strategic decision-making.\n"
+        )
+        dl_a2.download_button(
+            "⬇ Download Executive Report (EN)",
+            en_report.encode("utf-8"),
+            f"{country}_{ind}_executive_report_en.txt",
+            "text/plain",
+            use_container_width=True,
+        )
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown(
+        _next_step_cta(
+            "⚙️ Scenario Simulator",
+            f"Model policy scenarios and simulate alternative futures for {country} using AI-powered impact analysis."
+        ),
+        unsafe_allow_html=True,
+    )
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -1552,7 +1809,18 @@ def page_scenario_simulator():
     )
 
     if "fc_results" not in st.session_state or "fc_meta" not in st.session_state:
-        st.info("💡 Run a forecast in the **Forecast Center** first to enable scenario simulation.")
+        st.markdown(
+            _empty_state_card(
+                "⚙️",
+                "AI Strategic Planning Engine — Run a Forecast First",
+                "The scenario simulator lets you model 8 curated strategic scenarios — from Digital "
+                "Acceleration to Economic Slowdown — and see projected impacts across all 6 GCC nations. "
+                "Each scenario generates a bilingual Executive Intelligence Report with risk classification, "
+                "GCC rank shifts, and ministry-grade policy recommendations.",
+                "Navigate to 📈 Forecast Center, run a forecast, then return here to simulate strategic scenarios.",
+            ),
+            unsafe_allow_html=True,
+        )
         return
 
     y, fc, lo, hi, backtest, best_model = st.session_state["fc_results"]
@@ -1884,6 +2152,15 @@ def page_scenario_simulator():
                 _SUCCESS,
             )
 
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown(
+        _next_step_cta(
+            "🔬 AI Transparency Center",
+            "Understand how the AI generates forecasts — model reliability, driver intelligence, and responsible AI methodology."
+        ),
+        unsafe_allow_html=True,
+    )
+
 
 # ──────────────────────────────────────────────────────────────────────────────
 # PAGE 6 – Explainability
@@ -1897,16 +2174,18 @@ def page_explainability():
 
     if "fc_results" not in st.session_state or "fc_meta" not in st.session_state:
         st.markdown(
-            _transparency_card(
-                "HOW TO USE THIS CENTRE",
-                "Run a forecast in the <strong>Forecast Center</strong> first to unlock the full AI explainability "
-                "and transparency diagnostics. This centre will then show: model reliability scoring, "
-                "ranked driver intelligence, forecast confidence classification, decomposition analysis, "
-                "and a complete responsible AI methodology guide.",
-                "#1B4F72",
+            _empty_state_card(
+                "🔬",
+                "AI Transparency Center — Run a Forecast First",
+                "This centre provides: Trust Score (0–100), Forecast Confidence Classification, "
+                "Ranked Driver Intelligence, Model Quality Assessment, Time-Series Decomposition, "
+                "and a complete Responsible AI Methodology guide.",
+                "Navigate to 📈 Forecast Center, run a forecast, then return here for full AI explainability diagnostics.",
             ),
             unsafe_allow_html=True,
         )
+        st.markdown("<br>", unsafe_allow_html=True)
+        _section("AI Transparency — Always Available")
         _section("AI Transparency — Always Available")
         _render_ai_transparency_tab()
         return
