@@ -307,6 +307,68 @@ div[data-testid="metric-container"] {{
     box-shadow: 0 3px 14px rgba(27,79,114,0.28);
 }}
 
+/* ══ Scenario preset cards ═══════════════════════════════════════════════════ */
+.preset-card {{
+    background: white; border-radius: 12px; padding: 0.85rem 0.9rem;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+    border: 1.5px solid #E0E8F0; text-align: center;
+    transition: all 0.2s cubic-bezier(.25,.46,.45,.94);
+    min-height: 96px;
+}}
+.preset-card:hover {{
+    box-shadow: 0 6px 22px rgba(27,79,114,0.16);
+    border-color: {_PRIMARY}; transform: translateY(-2px);
+}}
+.preset-card.active {{
+    border-color: {_SUCCESS};
+    background: linear-gradient(135deg, white 0%, #EAFAF1 100%);
+    box-shadow: 0 4px 18px rgba(26,122,74,0.18);
+}}
+.preset-icon {{ font-size: 1.55rem; line-height: 1; margin-bottom: 0.3rem; }}
+.preset-name {{ font-weight: 700; font-size: 0.80rem; color: {_PRIMARY}; line-height: 1.2; }}
+.preset-desc {{ font-size: 0.64rem; color: #888; margin-top: 3px; line-height: 1.3; }}
+
+/* ══ Scenario intel banner ═══════════════════════════════════════════════════ */
+.scenario-intel-banner {{
+    border-radius: 12px; padding: 1rem 1.4rem; margin: 0.8rem 0;
+    display: flex; align-items: center; gap: 1rem;
+    border: 1px solid;
+}}
+.scenario-intel-banner.opportunity {{
+    background: linear-gradient(135deg, #EAFAF1 0%, #F3FBF7 100%);
+    border-color: {_SUCCESS};
+}}
+.scenario-intel-banner.risk {{
+    background: linear-gradient(135deg, #FDEDEC 0%, #FEF5F5 100%);
+    border-color: {_DANGER};
+}}
+.scenario-intel-banner.warning {{
+    background: linear-gradient(135deg, #FEF9E7 0%, #FDFBF2 100%);
+    border-color: {_WARNING};
+}}
+.scenario-intel-banner.pressure {{
+    background: linear-gradient(135deg, #F5EEF8 0%, #F9F5FB 100%);
+    border-color: #6C3483;
+}}
+.scenario-intel-banner.neutral {{
+    background: linear-gradient(135deg, #EAF2FF 0%, #F5F8FC 100%);
+    border-color: {_PRIMARY};
+}}
+.scenario-intel-icon {{ font-size: 2rem; line-height: 1; }}
+.scenario-intel-label {{ font-size: 1.05rem; font-weight: 800; line-height: 1.2; }}
+.scenario-intel-sub {{ font-size: 0.78rem; opacity: 0.75; margin-top: 2px; }}
+
+/* ══ Scenario report section ══════════════════════════════════════════════════ */
+.scenario-section {{
+    background: white; border-radius: 10px; padding: 1rem 1.3rem;
+    margin: 0.5rem 0; box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    border-left: 4px solid {_PRIMARY}; line-height: 1.65;
+}}
+.scenario-section-title {{
+    font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.9px;
+    font-weight: 700; color: {_GOLD}; margin-bottom: 0.45rem;
+}}
+
 /* ══ Custom scrollbar ════════════════════════════════════════════════════════ */
 ::-webkit-scrollbar {{ width: 5px; height: 5px; }}
 ::-webkit-scrollbar-track {{ background: #EEF2F7; }}
@@ -546,6 +608,15 @@ def _banner(title: str, subtitle: str) -> None:
 
 def _section(title: str) -> None:
     st.markdown(f'<div class="section-header">{title}</div>', unsafe_allow_html=True)
+
+
+def _scenario_section(title: str, body: str, border_color: str = "#1B4F72") -> str:
+    return (
+        f'<div class="scenario-section" style="border-left-color:{border_color};">'
+        f'<div class="scenario-section-title">{title}</div>'
+        f'{body}'
+        f'</div>'
+    )
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -1235,8 +1306,8 @@ def page_ai_insights():
 
 def page_scenario_simulator():
     _banner(
-        "⚙️ Policy Scenario Simulator",
-        "What-if analysis · Elasticity-based impact modelling · Bilingual narrative · Strategic policy planning",
+        "⚙️ AI Strategic Planning Engine",
+        "Scenario simulation · Elasticity-based impact modelling · Ministry-grade bilingual intelligence · GCC comparative analysis",
     )
 
     if "fc_results" not in st.session_state or "fc_meta" not in st.session_state:
@@ -1246,137 +1317,331 @@ def page_scenario_simulator():
     y, fc, lo, hi, backtest, best_model = st.session_state["fc_results"]
     country, ind, freq_code, horizon, confidence = st.session_state["fc_meta"]
     meta = gcc_data.INDICATORS[ind]
+    lib = meta["lower_is_better"]
+    flag = gcc_data.COUNTRIES[country]["flag"]
 
+    # ── Apply pending preset (must run before any widgets render) ────────────
+    if "apply_preset" in st.session_state:
+        pk = st.session_state.pop("apply_preset")
+        if pk in scenario_module.SCENARIO_PRESETS:
+            for k, v in scenario_module.SCENARIO_PRESETS[pk]["params"].items():
+                st.session_state[f"scenario_{k}"] = float(v)
+        st.session_state["active_preset"] = pk
+        st.rerun()
+
+    active_preset = st.session_state.get("active_preset", "")
+
+    # ── Config strip ─────────────────────────────────────────────────────────
     st.markdown(
         _exec_card(
-            "SCENARIO CONFIGURATION",
-            f'Country: <strong>{gcc_data.COUNTRIES[country]["flag"]} {country}</strong> &nbsp;|&nbsp; '
-            f'Indicator: <strong>{meta["name"]}</strong> &nbsp;|&nbsp; '
-            f'Baseline Model: <strong>{backtest.best_model_name}</strong>',
+            "SIMULATION CONFIGURATION",
+            f'{flag} <strong>{country}</strong> &nbsp;|&nbsp; '
+            f'<strong>{meta["name"]}</strong> &nbsp;|&nbsp; '
+            f'Model: <strong>{backtest.best_model_name}</strong> &nbsp;|&nbsp; '
+            f'Horizon: <strong>{horizon} period(s)</strong> &nbsp;|&nbsp; '
+            f'Confidence: <strong>{confidence*100:.0f}%</strong>',
         ),
         unsafe_allow_html=True,
     )
 
-    param_configs = scenario_module.get_param_config()
+    # ── Scenario presets ─────────────────────────────────────────────────────
+    _section("Strategic Scenario Presets")
+    st.markdown(
+        '<div class="data-source-strip">'
+        '📋 Select a preset to instantly configure all policy levers — or adjust manually below.'
+        '</div>',
+        unsafe_allow_html=True,
+    )
 
-    # ── Sliders in sidebar-style left panel ──────────────────────────────────
+    presets_list = list(scenario_module.SCENARIO_PRESETS.items())
+    for row_items in [presets_list[:4], presets_list[4:]]:
+        preset_cols = st.columns(4)
+        for (pk, pv), col in zip(row_items, preset_cols):
+            with col:
+                is_active = (pk == active_preset)
+                active_cls = " active" if is_active else ""
+                active_border = f'style="border-color:{pv["color"]}; background: linear-gradient(135deg, white 0%, {pv["color"]}18 100%);"' if is_active else ""
+                col.markdown(
+                    f'<div class="preset-card{active_cls}" {active_border}>'
+                    f'<div class="preset-icon">{pv["icon"]}</div>'
+                    f'<div class="preset-name">{pv["name"]}</div>'
+                    f'<div class="preset-desc">{pv["description"][:55]}{"…" if len(pv["description"]) > 55 else ""}</div>'
+                    f'</div>',
+                    unsafe_allow_html=True,
+                )
+                if col.button(
+                    "Apply ›" if not is_active else "✓ Active",
+                    key=f"preset_btn_{pk}",
+                    use_container_width=True,
+                    type="primary" if is_active else "secondary",
+                ):
+                    st.session_state["apply_preset"] = pk
+                    st.rerun()
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # ── Main layout: levers | results ────────────────────────────────────────
     col_params, col_results = st.columns([1, 2])
 
     with col_params:
         _section("Policy Levers")
-        st.markdown('<div style="font-size:0.78rem;color:#666;margin-bottom:0.8rem;">Adjust each parameter from its baseline. Values represent change in percentage points (pp).</div>', unsafe_allow_html=True)
-
+        st.markdown(
+            '<div style="font-size:0.76rem;color:#666;margin-bottom:0.8rem;line-height:1.5;">'
+            'Adjust levers from baseline (0). Each unit = +1 percentage-point shift in that driver.'
+            '</div>',
+            unsafe_allow_html=True,
+        )
+        param_configs = scenario_module.get_param_config()
         params: dict = {}
         for p in param_configs:
-            params[p["key"]] = st.slider(
+            val = st.slider(
                 p["label"],
-                min_value=p["min"], max_value=p["max"],
-                value=p["default"], step=p["step"],
+                min_value=float(p["min"]),
+                max_value=float(p["max"]),
+                value=float(st.session_state.get(f"scenario_{p['key']}", p["default"])),
+                step=float(p["step"]),
                 key=f"scenario_{p['key']}",
-                help=f"Arabic: {p['label_ar']}",
+                help=f"العربية: {p['label_ar']}",
             )
+            params[p["key"]] = val
 
         st.markdown("<br>", unsafe_allow_html=True)
-        run_scenario = st.button("🔄 Recompute Scenario", type="primary", use_container_width=True)
+        if any(abs(v) > 0.01 for v in params.values()):
+            if st.button("↺ Reset to Baseline", use_container_width=True):
+                st.session_state["apply_preset"] = "baseline"
+                st.rerun()
+
+    # ── Compute scenario result & intelligence ────────────────────────────────
+    result = scenario_module.apply_scenario(
+        baseline_forecast=fc, baseline_lower=lo, baseline_upper=hi,
+        params=params, indicator=ind, country=country,
+    )
+    intel = scenario_module.generate_scenario_intelligence(
+        country=country, indicator=ind,
+        result=result, params=params,
+        preset_name=active_preset,
+    )
 
     with col_results:
-        result = scenario_module.apply_scenario(
-            baseline_forecast=fc, baseline_lower=lo, baseline_upper=hi,
-            params=params, indicator=ind, country=country,
+        # ── Scenario classification banner ───────────────────────────────────
+        sev = intel.severity
+        sev_icons = {
+            "opportunity": "✅", "risk": "🚨", "warning": "⚠️",
+            "pressure": "📊", "neutral": "📋",
+        }
+        rank_text = ""
+        if intel.gcc_ranking_shift > 0:
+            rank_text = f" &nbsp;|&nbsp; 📈 GCC Rank +{intel.gcc_ranking_shift}"
+        elif intel.gcc_ranking_shift < 0:
+            rank_text = f" &nbsp;|&nbsp; 📉 GCC Rank {intel.gcc_ranking_shift}"
+        st.markdown(
+            f'<div class="scenario-intel-banner {sev}">'
+            f'<div class="scenario-intel-icon">{sev_icons.get(sev, "📋")}</div>'
+            f'<div>'
+            f'<div class="scenario-intel-label" style="color:{intel.badge_color};">'
+            f'{intel.scenario_label}</div>'
+            f'<div class="scenario-intel-sub">'
+            f'{intel.scenario_label_ar}{rank_text}'
+            f'</div>'
+            f'</div>'
+            f'</div>',
+            unsafe_allow_html=True,
         )
 
-        # ── Impact summary ───────────────────────────────────────────────────
-        m1, m2, m3 = st.columns(3)
+        # ── 4 impact KPI cards ───────────────────────────────────────────────
         impact_good = result.optimistic
         arrow = "↓" if result.total_impact_pp < 0 else "↑"
-
+        m1, m2, m3, m4 = st.columns(4)
         m1.markdown(_kpi_card(
-            "Baseline Forecast (End)",
+            "Baseline (End)",
             f"{result.baseline_forecast.iloc[-1]:.2f}%",
         ), unsafe_allow_html=True)
         m2.markdown(_kpi_card(
-            "Scenario Forecast (End)",
+            "Scenario (End)",
             f"{result.scenario_forecast.iloc[-1]:.2f}%",
             f"{arrow} {abs(result.total_impact_pp):.2f}pp", impact_good,
         ), unsafe_allow_html=True)
         m3.markdown(_kpi_card(
-            "Relative Impact",
-            f"{result.total_impact_pct:+.1f}%",
+            "Delta (pp)",
+            f"{result.total_impact_pp:+.2f}pp",
             "Favourable" if impact_good else "Adverse", impact_good,
+        ), unsafe_allow_html=True)
+        m4.markdown(_kpi_card(
+            "Relative Change",
+            f"{result.total_impact_pct:+.1f}%",
+            "vs Baseline", impact_good,
         ), unsafe_allow_html=True)
 
         st.markdown("<br>", unsafe_allow_html=True)
 
-        # ── Scenario chart ───────────────────────────────────────────────────
-        _section("Baseline vs Scenario Forecast")
-        fig = go.Figure(layout=_plotly_base())
+    # ── Full-width: chart + waterfall side by side ────────────────────────────
+    chart_col, waterfall_col = st.columns([3, 2])
 
-        # Historical
+    with chart_col:
+        _section("Baseline vs Scenario Forecast")
+        sc_color = _SUCCESS if impact_good else _DANGER
+        fig = go.Figure(layout=_plotly_base(f"{flag} {country} — {meta['name']} Scenario"))
         fig.add_trace(go.Scatter(
             x=y.index, y=y.values, name="Historical",
-            line=dict(color=_COUNTRY_COLORS.get(country, _PRIMARY), width=2),
+            line=dict(color=_COUNTRY_COLORS.get(country, _PRIMARY), width=2.2),
             mode="lines+markers", marker=dict(size=4),
         ))
-        # Baseline
         fig.add_trace(go.Scatter(
             x=result.baseline_forecast.index, y=result.baseline_forecast.values,
-            name="Baseline Forecast",
-            line=dict(color="#888", width=2, dash="dash"),
+            name="Baseline",
+            line=dict(color="#9E9E9E", width=2, dash="dash"),
         ))
         fig.add_trace(go.Scatter(
             x=list(result.baseline_upper.index) + list(result.baseline_lower.index[::-1]),
             y=list(result.baseline_upper.values) + list(result.baseline_lower.values[::-1]),
-            fill="toself", fillcolor="rgba(150,150,150,0.1)",
+            fill="toself", fillcolor="rgba(150,150,150,0.10)",
             line=dict(color="rgba(0,0,0,0)"), showlegend=False,
         ))
-        # Scenario
-        sc_color = _SUCCESS if impact_good else _DANGER
         fig.add_trace(go.Scatter(
             x=result.scenario_forecast.index, y=result.scenario_forecast.values,
-            name="Scenario Forecast",
-            line=dict(color=sc_color, width=2.5),
-            mode="lines+markers", marker=dict(size=6, symbol="diamond"),
+            name="Scenario",
+            line=dict(color=sc_color, width=2.8),
+            mode="lines+markers", marker=dict(size=7, symbol="diamond"),
         ))
         fig.add_trace(go.Scatter(
             x=list(result.scenario_upper.index) + list(result.scenario_lower.index[::-1]),
             y=list(result.scenario_upper.values) + list(result.scenario_lower.values[::-1]),
-            fill="toself", fillcolor=f"rgba({'26,122,74' if impact_good else '169,50,38'},0.1)",
+            fill="toself",
+            fillcolor=f"rgba({'26,122,74' if impact_good else '169,50,38'},0.12)",
             line=dict(color="rgba(0,0,0,0)"), showlegend=False,
         ))
-        fig.add_vline(x=str(y.index[-1]), line_dash="dot", line_color="gray", opacity=0.5)
-        fig.update_layout(yaxis_title=f"{meta['name']} (%)", hovermode="x unified", height=360)
+        fig.add_vline(x=str(y.index[-1]), line_dash="dot", line_color="#AAAAAA", opacity=0.6)
+        fig.update_layout(
+            yaxis_title=f"{meta['name']} ({meta['unit']})",
+            hovermode="x unified", height=380,
+            legend=dict(orientation="h", y=-0.15, x=0),
+        )
         st.plotly_chart(fig, use_container_width=True)
 
-        # ── Driver waterfall ─────────────────────────────────────────────────
+    with waterfall_col:
         _section("Driver Contribution Breakdown")
-        active = {k: v for k, v in result.driver_contributions.items() if abs(v) > 1e-4}
-        if active:
-            driver_labels = [scenario_module._PARAM_LABELS.get(k, k) for k in active]
-            driver_vals = list(active.values())
-            bar_colors_d = [_SUCCESS if ((v < 0 and meta["lower_is_better"]) or (v > 0 and not meta["lower_is_better"])) else _DANGER for v in driver_vals]
-
+        active_drivers = {k: v for k, v in result.driver_contributions.items() if abs(v) > 1e-4}
+        if active_drivers:
+            d_labels = [scenario_module._PARAM_LABELS.get(k, k) for k in active_drivers]
+            d_vals = list(active_drivers.values())
+            d_colors = [
+                _SUCCESS if ((v < 0 and lib) or (v > 0 and not lib)) else _DANGER
+                for v in d_vals
+            ]
             fig_d = go.Figure(layout=_plotly_base())
             fig_d.add_trace(go.Bar(
-                x=driver_labels, y=driver_vals,
-                marker_color=bar_colors_d,
-                text=[f"{v:+.3f}pp" for v in driver_vals],
+                x=d_vals, y=d_labels,
+                orientation="h",
+                marker_color=d_colors,
+                text=[f"{v:+.3f}pp" for v in d_vals],
                 textposition="outside",
             ))
-            fig_d.add_hline(y=0, line_color="gray", line_width=1)
-            fig_d.update_layout(yaxis_title="Impact (pp)", height=280)
+            fig_d.add_vline(x=0, line_color="gray", line_width=1)
+            fig_d.update_layout(
+                xaxis_title="Impact (pp)", height=380,
+                yaxis=dict(autorange="reversed"),
+                margin=dict(l=140, r=60, t=20, b=40),
+            )
             st.plotly_chart(fig_d, use_container_width=True)
+        else:
+            st.markdown(
+                _alert_card("No Active Drivers", "All policy levers are at baseline (0pp).", "info"),
+                unsafe_allow_html=True,
+            )
 
-        # ── AI Narrative ─────────────────────────────────────────────────────
-        _section("AI Scenario Interpretation")
-        st.markdown(
-            _exec_card(
-                "AI SCENARIO NARRATIVE",
-                result.summary_en,
-            ),
-            unsafe_allow_html=True,
-        )
-        st.markdown(f'<div class="arabic-block">{result.summary_ar}</div>',
-                    unsafe_allow_html=True)
+    # ── Executive Intelligence Report ─────────────────────────────────────────
+    _section("Executive Scenario Intelligence Report")
+    tab_en, tab_ar = st.tabs(["🇬🇧 Strategic Intelligence Report", "🇸🇦 التقرير الاستراتيجي"])
+
+    with tab_en:
+        s_badge = _badge(intel.scenario_label, intel.severity)
+        opt_badge = _badge("Favourable Outcome" if impact_good else "Adverse Outcome",
+                           "low" if impact_good else "high")
+        st.markdown(f"{s_badge} {opt_badge}", unsafe_allow_html=True)
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        en_c1, en_c2 = st.columns(2)
+        with en_c1:
+            st.markdown(
+                _scenario_section(
+                    "STRATEGIC OUTLOOK",
+                    intel.strategic_outlook_en,
+                    border_color=intel.badge_color,
+                ),
+                unsafe_allow_html=True,
+            )
+            st.markdown(
+                _scenario_section(
+                    "LABOR MARKET IMPLICATIONS",
+                    intel.labor_implications_en,
+                    border_color=_SUCCESS if impact_good else _DANGER,
+                ),
+                unsafe_allow_html=True,
+            )
+            st.markdown(
+                _scenario_section(
+                    "GCC COMPARATIVE ANALYSIS",
+                    intel.gcc_comparative_en,
+                    border_color=_PRIMARY,
+                ),
+                unsafe_allow_html=True,
+            )
+        with en_c2:
+            st.markdown(
+                _scenario_section(
+                    "KEY ECONOMIC IMPACT",
+                    intel.key_impact_en,
+                    border_color=_GOLD,
+                ),
+                unsafe_allow_html=True,
+            )
+            st.markdown(
+                _scenario_section(
+                    "RISK ASSESSMENT",
+                    intel.risk_assessment_en,
+                    border_color=_WARNING if impact_good else _DANGER,
+                ),
+                unsafe_allow_html=True,
+            )
+            st.markdown(
+                _scenario_section(
+                    "RECOMMENDED STRATEGIC ACTIONS",
+                    "<br>".join(f"✦ {r}" for r in intel.recommended_actions_en),
+                    border_color=_SUCCESS,
+                ),
+                unsafe_allow_html=True,
+            )
+
+    with tab_ar:
+        s_badge_ar = _badge(intel.scenario_label_ar, intel.severity)
+        st.markdown(s_badge_ar, unsafe_allow_html=True)
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        ar_c1, ar_c2 = st.columns(2)
+        def _ar_sc(title_ar, body_ar, color="#1B4F72"):
+            st.markdown(
+                f'<div class="arabic-block" style="border-right-color:{color}; margin:0.45rem 0;">'
+                f'<div style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.7px;'
+                f'color:#C39B4E;font-weight:700;margin-bottom:0.4rem;">{title_ar}</div>'
+                f'{body_ar}'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+
+        with ar_c1:
+            _ar_sc("النظرة الاستراتيجية", intel.strategic_outlook_ar, intel.badge_color)
+            _ar_sc("الانعكاسات على سوق العمل", intel.labor_implications_ar,
+                   _SUCCESS if impact_good else _DANGER)
+            _ar_sc("المقارنة الخليجية", intel.gcc_comparative_ar, _PRIMARY)
+        with ar_c2:
+            _ar_sc("الأثر الاقتصادي الرئيسي", intel.key_impact_ar, _GOLD)
+            _ar_sc("تقييم المخاطر", intel.risk_assessment_ar,
+                   _WARNING if impact_good else _DANGER)
+            _ar_sc(
+                "التوصيات الاستراتيجية",
+                "<br>".join(f"✦ {r}" for r in intel.recommended_actions_ar),
+                _SUCCESS,
+            )
 
 
 # ──────────────────────────────────────────────────────────────────────────────
