@@ -64,106 +64,254 @@ _COUNTRY_COLORS = {
 
 st.markdown(f"""
 <style>
-/* ── Global ── */
-[data-testid="stAppViewContainer"] {{ background-color: {_LIGHT_BG}; }}
-[data-testid="stSidebar"] {{ background: linear-gradient(180deg, {_PRIMARY} 0%, #0D2F45 100%); }}
-[data-testid="stSidebar"] * {{ color: #FFFFFF !important; }}
-[data-testid="stSidebar"] .stRadio > label {{ color: #E8EDF2 !important; font-size:0.85rem; }}
-[data-testid="stSidebar"] .stSelectbox label, [data-testid="stSidebar"] .stSlider label {{ color: #BDD0DF !important; }}
-div[data-testid="metric-container"] {{ background: white; border-radius: 8px; padding: 12px; box-shadow: 0 1px 6px rgba(0,0,0,0.07); }}
-
-/* ── Banner ── */
-.platform-banner {{
-    background: linear-gradient(135deg, {_PRIMARY} 0%, #2874A6 100%);
-    color: white; padding: 1.8rem 2rem; border-radius: 12px;
-    margin-bottom: 1.5rem;
-    box-shadow: 0 4px 20px rgba(27,79,114,0.25);
+/* ══ Reset & global ══════════════════════════════════════════════════════════ */
+[data-testid="stAppViewContainer"] {{
+    background: linear-gradient(160deg, #EEF2F7 0%, #E8EDF4 60%, #EDF1F7 100%);
 }}
-.platform-banner h1 {{ margin:0; font-size:1.7rem; font-weight:700; letter-spacing:-0.3px; }}
-.platform-banner p  {{ margin:0.3rem 0 0; font-size:0.9rem; opacity:0.85; }}
+[data-testid="stSidebar"] {{
+    background: linear-gradient(180deg, #091320 0%, #0D2034 40%, #122A45 75%, #0D2034 100%);
+    border-right: 1px solid rgba(195,155,78,0.18);
+}}
+[data-testid="stSidebar"] * {{ color: #FFFFFF !important; }}
+[data-testid="stSidebar"] .stRadio > label {{ color: #D0DCE8 !important; font-size:0.85rem; }}
+[data-testid="stSidebar"] .stSelectbox label,
+[data-testid="stSidebar"] .stSlider label {{ color: #9EB5C8 !important; }}
+div[data-testid="metric-container"] {{
+    background: white; border-radius: 12px; padding: 14px;
+    box-shadow: 0 3px 14px rgba(0,0,0,0.08);
+}}
+/* smooth all Streamlit elements */
+*, *::before, *::after {{ transition: box-shadow 0.2s ease; }}
 
-/* ── Section header ── */
+/* ══ Hero banner (Overview page) ════════════════════════════════════════════ */
+.hero-banner {{
+    background: linear-gradient(135deg, #091320 0%, #0D2A42 30%, #1B4F72 65%, #1A6392 100%);
+    border-radius: 20px; padding: 2.6rem 3rem 1.8rem;
+    color: white; margin-bottom: 2rem;
+    box-shadow: 0 14px 52px rgba(9,19,32,0.42);
+    position: relative; overflow: hidden;
+    border: 1px solid rgba(195,155,78,0.22);
+}}
+.hero-banner::before {{
+    content: '';
+    position: absolute; top: -90px; right: -50px;
+    width: 480px; height: 480px;
+    background: radial-gradient(circle, rgba(195,155,78,0.13) 0%, transparent 65%);
+    pointer-events: none;
+}}
+.hero-banner::after {{
+    content: '';
+    position: absolute; bottom: -70px; left: -40px;
+    width: 320px; height: 320px;
+    background: radial-gradient(circle, rgba(41,128,185,0.18) 0%, transparent 60%);
+    pointer-events: none;
+}}
+.hero-eyebrow {{
+    display: inline-block;
+    background: rgba(195,155,78,0.18); border: 1px solid rgba(195,155,78,0.45);
+    color: #E8C96E; padding: 3px 14px; border-radius: 30px;
+    font-size: 0.66rem; font-weight: 700; letter-spacing: 1.4px;
+    text-transform: uppercase; margin-bottom: 0.9rem;
+}}
+.hero-title {{
+    margin: 0; font-size: 2.1rem; font-weight: 900; letter-spacing: -0.8px;
+    line-height: 1.15; text-shadow: 0 2px 20px rgba(0,0,0,0.25);
+}}
+.hero-subtitle {{ margin: 0.45rem 0 0.15rem; font-size: 1.0rem; opacity: 0.78; }}
+.hero-mission {{ margin: 0.15rem 0 0; font-size: 0.82rem; opacity: 0.55; font-style: italic; }}
+.hero-divider {{
+    border: none; border-top: 1px solid rgba(255,255,255,0.12);
+    margin: 1.5rem 0 1.2rem;
+}}
+.hero-stats {{
+    display: flex; align-items: stretch; gap: 0;
+    background: rgba(0,0,0,0.22); border-radius: 12px; overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.08);
+}}
+.hero-stat {{
+    flex: 1; padding: 0.85rem 1.1rem; text-align: center;
+    border-right: 1px solid rgba(255,255,255,0.08);
+    transition: background 0.2s ease;
+}}
+.hero-stat:last-child {{ border-right: none; }}
+.hero-stat:hover {{ background: rgba(255,255,255,0.06); }}
+.hero-stat-val {{ font-size: 1.45rem; font-weight: 800; color: #E8C96E; line-height: 1; }}
+.hero-stat-lbl {{
+    font-size: 0.62rem; opacity: 0.58; text-transform: uppercase;
+    letter-spacing: 0.7px; margin-top: 4px;
+}}
+.hero-stat-sub {{ font-size: 0.70rem; opacity: 0.72; margin-top: 2px; }}
+
+/* ══ Page sub-banners ════════════════════════════════════════════════════════ */
+.platform-banner {{
+    background: linear-gradient(135deg, #1B4F72 0%, #2874A6 60%, #2980B9 100%);
+    color: white; padding: 1.6rem 2rem; border-radius: 16px;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 6px 28px rgba(27,79,114,0.30);
+    position: relative; overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.1);
+}}
+.platform-banner::after {{
+    content: '';
+    position: absolute; right: -30px; top: -40px;
+    width: 220px; height: 220px;
+    background: radial-gradient(circle, rgba(195,155,78,0.18) 0%, transparent 70%);
+    pointer-events: none;
+}}
+.platform-banner h1 {{ margin:0; font-size:1.65rem; font-weight:800; letter-spacing:-0.4px; }}
+.platform-banner p  {{ margin:0.35rem 0 0; font-size:0.88rem; opacity:0.82; }}
+
+/* ══ Section headers ═════════════════════════════════════════════════════════ */
 .section-header {{
     border-left: 4px solid {_GOLD}; padding-left: 12px;
-    margin: 1.5rem 0 1rem; color: {_PRIMARY}; font-weight: 700; font-size: 1.1rem;
+    margin: 2rem 0 1rem; color: {_PRIMARY}; font-weight: 800; font-size: 1.05rem;
+    letter-spacing: -0.2px;
 }}
 
-/* ── KPI card ── */
+/* ══ KPI cards ═══════════════════════════════════════════════════════════════ */
 .kpi-card {{
-    background: white; border-radius: 10px; padding: 1.1rem 1.2rem;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.07);
-    border-top: 3px solid {_PRIMARY}; text-align: center;
-    transition: transform .15s ease;
+    background: white; border-radius: 14px; padding: 1.3rem 1.1rem;
+    box-shadow: 0 3px 16px rgba(0,0,0,0.075);
+    text-align: center; position: relative; overflow: hidden;
+    border: 1px solid rgba(27,79,114,0.065);
+    transition: transform 0.22s cubic-bezier(.25,.46,.45,.94),
+                box-shadow 0.22s ease;
 }}
-.kpi-card:hover {{ transform: translateY(-2px); }}
-.kpi-val  {{ font-size: 1.9rem; font-weight: 700; color: {_PRIMARY}; line-height:1.1; }}
-.kpi-label{{ font-size: 0.72rem; color: #666; text-transform: uppercase; letter-spacing:.5px; margin-top:4px; }}
-.kpi-delta{{ font-size: 0.82rem; margin-top:4px; font-weight:600; }}
-.delta-good{{ color: {_SUCCESS}; }}
-.delta-bad {{ color: {_DANGER};  }}
+.kpi-card::before {{
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, {_PRIMARY}, {_GOLD});
+}}
+.kpi-card:hover {{
+    transform: translateY(-4px);
+    box-shadow: 0 10px 32px rgba(27,79,114,0.18);
+    border-color: rgba(27,79,114,0.12);
+}}
+.kpi-val   {{ font-size: 1.9rem; font-weight: 800; color: {_PRIMARY}; line-height:1.1; }}
+.kpi-label {{ font-size: 0.67rem; color: #888; text-transform: uppercase; letter-spacing:.7px; margin-top:5px; font-weight:600; }}
+.kpi-delta {{ font-size: 0.82rem; margin-top:6px; font-weight:700; }}
+.delta-good {{ color: {_SUCCESS}; }}
+.delta-bad  {{ color: {_DANGER}; }}
 
-/* ── Insight cards ── */
+/* ══ Insight cards ═══════════════════════════════════════════════════════════ */
 .insight-card {{
-    background: white; border-radius: 8px; padding: 1rem 1.2rem;
-    margin: 0.5rem 0; box-shadow: 0 1px 6px rgba(0,0,0,0.07);
-    border-left: 4px solid {_PRIMARY};
+    background: white; border-radius: 10px; padding: 1rem 1.2rem;
+    margin: 0.45rem 0; box-shadow: 0 2px 12px rgba(0,0,0,0.065);
+    border-left: 4px solid {_PRIMARY}; line-height: 1.65;
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
 }}
-.risk-card    {{ border-left-color: {_DANGER}; }}
-.rec-card     {{ border-left-color: {_SUCCESS}; }}
-.outlook-card {{ border-left-color: {_GOLD}; background: #FFFBF2; }}
+.insight-card:hover {{
+    transform: translateX(2px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}}
+.risk-card    {{ border-left-color: {_DANGER}; background: #FFFBFB; }}
+.rec-card     {{ border-left-color: {_SUCCESS}; background: #FAFFFC; }}
+.outlook-card {{ border-left-color: {_GOLD}; background: #FFFCF5; }}
 
-/* ── Arabic ── */
+/* ══ Executive cards ═════════════════════════════════════════════════════════ */
+.exec-card {{
+    background: linear-gradient(135deg, #ffffff 0%, #F8FAFD 100%);
+    border-radius: 14px; padding: 1.4rem 1.6rem;
+    box-shadow: 0 4px 20px rgba(27,79,114,0.09);
+    border: 1px solid rgba(27,79,114,0.07);
+    margin: 0.5rem 0; line-height: 1.65;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+}}
+.exec-card:hover {{ box-shadow: 0 8px 30px rgba(27,79,114,0.15); transform: translateY(-2px); }}
+.exec-card-eyebrow {{
+    font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.9px;
+    color: {_GOLD}; font-weight: 700; margin-bottom: 0.45rem;
+}}
+
+/* ══ Arabic block ════════════════════════════════════════════════════════════ */
 .arabic-block {{
     direction: rtl; text-align: right;
     font-family: 'Amiri', 'Traditional Arabic', 'Arial', sans-serif;
-    line-height: 2.0; font-size: 1.0rem;
-    background: white; border-radius: 8px; padding: 1.2rem 1.5rem;
-    box-shadow: 0 1px 6px rgba(0,0,0,0.07); margin: 0.5rem 0;
+    line-height: 2.1; font-size: 1.0rem;
+    background: white; border-radius: 10px; padding: 1.3rem 1.6rem;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.065); margin: 0.5rem 0;
     border-right: 4px solid {_GOLD};
+    transition: box-shadow 0.2s ease;
 }}
+.arabic-block:hover {{ box-shadow: 0 5px 22px rgba(0,0,0,0.1); }}
 
-/* ── Badge ── */
+/* ══ Badge system ════════════════════════════════════════════════════════════ */
 .badge {{
-    display:inline-block; padding: 4px 12px; border-radius: 20px;
-    font-size: 0.75rem; font-weight: 600; letter-spacing: .3px;
-    margin: 2px;
+    display: inline-block; padding: 4px 12px; border-radius: 20px;
+    font-size: 0.72rem; font-weight: 700; letter-spacing: .3px;
+    margin: 2px; border: 1px solid transparent;
 }}
-.badge-improving          {{ background:#D5F5E3; color:{_SUCCESS}; }}
-.badge-worsening          {{ background:#FADBD8; color:{_DANGER}; }}
-.badge-stable             {{ background:#EAF2FF; color:{_PRIMARY}; }}
-.badge-high               {{ background:#FADBD8; color:{_DANGER}; }}
-.badge-medium             {{ background:#FDEBD0; color:{_WARNING}; }}
-.badge-low                {{ background:#D5F5E3; color:{_SUCCESS}; }}
-.badge-high-risk          {{ background:#FADBD8; color:{_DANGER}; border: 1px solid {_DANGER}; }}
-.badge-moderate-risk      {{ background:#FDEBD0; color:{_WARNING}; border: 1px solid {_WARNING}; }}
-.badge-stable             {{ background:#EAF2FF; color:{_PRIMARY}; border: 1px solid {_PRIMARY}; }}
-.badge-recovery           {{ background:#E8F8F5; color:#148F77; border: 1px solid #148F77; }}
-.badge-structural-pressure{{ background:#FDFEFE; color:#7B241C; border: 1px solid #7B241C; }}
-.badge-growth-opportunity {{ background:#EAFAF1; color:{_SUCCESS}; border: 1px solid {_SUCCESS}; }}
-.badge-inflationary       {{ background:#FEF9E7; color:#9A7D0A; border: 1px solid #9A7D0A; }}
-.badge-labor-volatility   {{ background:#F5EEF8; color:#6C3483; border: 1px solid #6C3483; }}
+.badge-improving          {{ background:#D5F5E3; color:{_SUCCESS};  border-color:{_SUCCESS}; }}
+.badge-worsening          {{ background:#FADBD8; color:{_DANGER};   border-color:{_DANGER}; }}
+.badge-stable             {{ background:#EAF2FF; color:{_PRIMARY};  border-color:{_PRIMARY}; }}
+.badge-high               {{ background:#FADBD8; color:{_DANGER};   border-color:{_DANGER}; }}
+.badge-medium             {{ background:#FDEBD0; color:{_WARNING};  border-color:{_WARNING}; }}
+.badge-low                {{ background:#D5F5E3; color:{_SUCCESS};  border-color:{_SUCCESS}; }}
+.badge-high-risk          {{ background:#FADBD8; color:{_DANGER};   border-color:{_DANGER}; }}
+.badge-moderate-risk      {{ background:#FDEBD0; color:{_WARNING};  border-color:{_WARNING}; }}
+.badge-recovery           {{ background:#E8F8F5; color:#148F77;     border-color:#148F77; }}
+.badge-structural-pressure{{ background:#FDFEFE; color:#7B241C;     border-color:#7B241C; }}
+.badge-growth-opportunity {{ background:#EAFAF1; color:{_SUCCESS};  border-color:{_SUCCESS}; }}
+.badge-inflationary       {{ background:#FEF9E7; color:#9A7D0A;     border-color:#9A7D0A; }}
+.badge-labor-volatility   {{ background:#F5EEF8; color:#6C3483;     border-color:#6C3483; }}
 
-/* ── Alert cards ── */
+/* ══ Alert cards ═════════════════════════════════════════════════════════════ */
 .alert-card {{
-    border-radius: 8px; padding: 0.9rem 1.2rem;
-    margin: 0.4rem 0; font-size: 0.9rem;
-    border-left: 5px solid;
+    border-radius: 10px; padding: 0.9rem 1.2rem; margin: 0.4rem 0;
+    font-size: 0.88rem; border-left: 5px solid;
+    transition: transform 0.15s ease;
 }}
-.alert-critical {{ background:#FDEDEC; border-color:{_DANGER}; }}
-.alert-warning  {{ background:#FEF9E7; border-color:{_WARNING}; }}
-.alert-success  {{ background:#EAFAF1; border-color:{_SUCCESS}; }}
-.alert-info     {{ background:#EAF2FF; border-color:{_PRIMARY}; }}
-.alert-title    {{ font-weight:700; font-size:0.88rem; margin-bottom:4px; }}
-.alert-msg      {{ font-size:0.84rem; opacity:0.9; }}
+.alert-card:hover {{ transform: translateX(3px); }}
+.alert-critical {{ background: #FDEDEC; border-color: {_DANGER}; }}
+.alert-warning  {{ background: #FEF9E7; border-color: {_WARNING}; }}
+.alert-success  {{ background: #EAFAF1; border-color: {_SUCCESS}; }}
+.alert-info     {{ background: #EAF2FF; border-color: {_PRIMARY}; }}
+.alert-title    {{ font-weight: 700; font-size: 0.86rem; margin-bottom: 4px; }}
+.alert-msg      {{ font-size: 0.82rem; opacity: 0.9; line-height: 1.5; }}
 
-/* ── Risk panel ── */
+/* ══ Risk panels ═════════════════════════════════════════════════════════════ */
 .risk-panel {{
-    background: white; border-radius: 10px; padding: 1rem 1.3rem;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.07); margin-bottom: 1rem;
-    border-top: 3px solid {_DANGER};
+    background: white; border-radius: 12px; padding: 1.1rem 1.4rem;
+    box-shadow: 0 3px 16px rgba(0,0,0,0.08); margin-bottom: 1rem;
+    border-top: 4px solid {_DANGER};
+    transition: box-shadow 0.2s ease;
 }}
-.risk-label {{ font-size: 1.05rem; font-weight: 700; margin-bottom: 4px; }}
-.risk-rationale {{ font-size: 0.84rem; color: #555; line-height: 1.5; }}
+.risk-panel:hover {{ box-shadow: 0 6px 26px rgba(0,0,0,0.13); }}
+.risk-label {{ font-size: 1.0rem; font-weight: 800; margin-bottom: 4px; }}
+.risk-rationale {{ font-size: 0.82rem; color: #555; line-height: 1.56; }}
+
+/* ══ Country intel cards (AI Overview row) ═══════════════════════════════════ */
+.country-intel-card {{
+    background: white; border-radius: 12px; padding: 0.75rem 0.65rem;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.07); text-align: center;
+    border-top: 3px solid {_PRIMARY};
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: 1px solid rgba(27,79,114,0.06);
+}}
+.country-intel-card:hover {{
+    transform: translateY(-3px);
+    box-shadow: 0 8px 26px rgba(27,79,114,0.15);
+}}
+
+/* ══ Data source strip ═══════════════════════════════════════════════════════ */
+.data-source-strip {{
+    background: rgba(27,79,114,0.055); border-radius: 8px;
+    padding: 0.4rem 0.9rem; font-size: 0.72rem; color: #666;
+    border-left: 3px solid {_GOLD}; margin-bottom: 1rem;
+}}
+
+/* ══ Intelligence highlight strip ═══════════════════════════════════════════ */
+.intel-highlight {{
+    background: linear-gradient(135deg, {_PRIMARY} 0%, #2980B9 100%);
+    border-radius: 10px; padding: 0.8rem 1.2rem;
+    color: white; margin: 0.3rem 0; font-size: 0.85rem; line-height: 1.5;
+    box-shadow: 0 3px 14px rgba(27,79,114,0.28);
+}}
+
+/* ══ Custom scrollbar ════════════════════════════════════════════════════════ */
+::-webkit-scrollbar {{ width: 5px; height: 5px; }}
+::-webkit-scrollbar-track {{ background: #EEF2F7; }}
+::-webkit-scrollbar-thumb {{ background: #B8CCE0; border-radius: 4px; }}
+::-webkit-scrollbar-thumb:hover {{ background: {_PRIMARY}; }}
 </style>
 """, unsafe_allow_html=True)
 
@@ -173,10 +321,19 @@ div[data-testid="metric-container"] {{ background: white; border-radius: 8px; pa
 
 with st.sidebar:
     st.markdown("""
-    <div style="text-align:center; padding: 1rem 0 1.5rem;">
-        <div style="font-size:2.5rem;">🌍</div>
-        <div style="font-weight:700; font-size:1.0rem; letter-spacing:-0.3px;">GCC Employment Intelligence</div>
-        <div style="font-size:0.72rem; opacity:0.65; margin-top:2px;">AI Policy Analytics Platform</div>
+    <div style="text-align:center; padding: 1.2rem 0.5rem 1.6rem;">
+        <div style="font-size:2.8rem; line-height:1; margin-bottom:0.5rem;">🌍</div>
+        <div style="font-weight:800; font-size:0.95rem; letter-spacing:-0.2px;
+                    line-height:1.3; margin-bottom:3px;">
+            GCC Employment Intelligence
+        </div>
+        <div style="display:inline-block; background:rgba(195,155,78,0.2);
+                    border:1px solid rgba(195,155,78,0.4); color:#E8C96E;
+                    padding:2px 10px; border-radius:20px;
+                    font-size:0.60rem; font-weight:700; letter-spacing:1.0px;
+                    text-transform:uppercase; margin-top:4px;">
+            AI POLICY ANALYTICS
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -202,11 +359,16 @@ with st.sidebar:
     last_updated = meta.get("last_updated", "Not yet fetched")
     cache_ok = is_cache_available()
 
+    cache_icon = "🟢" if cache_ok else "🔴"
     st.markdown(
-        f'<div style="font-size:0.72rem; opacity:0.7; line-height:1.6;">'
-        f'<strong>Data source</strong><br>'
-        f'World Bank Open Data<br>'
-        f'<span style="opacity:0.8;">Last updated:<br>{last_updated}</span>'
+        f'<div style="background:rgba(255,255,255,0.07); border-radius:8px; '
+        f'padding:0.7rem 0.9rem; font-size:0.71rem; line-height:1.65; '
+        f'border-left:2px solid rgba(195,155,78,0.4);">'
+        f'<div style="font-weight:700; font-size:0.68rem; text-transform:uppercase; '
+        f'letter-spacing:0.6px; opacity:0.7; margin-bottom:4px;">Data Source</div>'
+        f'World Bank Open Data API v2<br>'
+        f'{cache_icon} Cache: {"Live" if cache_ok else "Not available"}<br>'
+        f'<span style="opacity:0.65;">Updated: {last_updated}</span>'
         f'</div>',
         unsafe_allow_html=True,
     )
@@ -216,7 +378,6 @@ with st.sidebar:
         with st.spinner("Fetching data from World Bank Open Data…"):
             try:
                 gcc_data.refresh(force=True)
-                # Clear any cached forecasts that depend on the data
                 for k in list(st.session_state.keys()):
                     if k in ("fc_results", "fc_meta"):
                         del st.session_state[k]
@@ -226,11 +387,12 @@ with st.sidebar:
                 st.error(f"Refresh failed: {exc}")
 
     if not cache_ok:
-        st.warning("⚠ No local cache found. Click **Refresh Data** to fetch from World Bank.", icon="⚠️")
+        st.warning("⚠ No local cache. Click **Refresh Data** to fetch from World Bank.", icon="⚠️")
 
     st.markdown(
-        '<div style="font-size:0.68rem; opacity:0.45; padding-top:0.8rem;">'
-        '© 2025 GCC Statistical Intelligence Platform'
+        '<div style="font-size:0.62rem; opacity:0.38; padding-top:0.9rem; text-align:center;">'
+        '© 2025 GCC Statistical Intelligence Platform<br>'
+        'Powered by World Bank Open Data'
         '</div>',
         unsafe_allow_html=True,
     )
@@ -314,18 +476,29 @@ def _run_forecast(country: str, indicator: str, freq: str, horizon: int, alpha: 
 def _kpi_card(label: str, value: str, delta: str = "", good: bool = True) -> str:
     delta_cls = "delta-good" if good else "delta-bad"
     delta_html = f'<div class="kpi-delta {delta_cls}">{delta}</div>' if delta else ""
-    return f"""
-    <div class="kpi-card">
-        <div class="kpi-val">{value}</div>
-        <div class="kpi-label">{label}</div>
-        {delta_html}
-    </div>"""
+    return (
+        f'<div class="kpi-card">'
+        f'<div class="kpi-val">{value}</div>'
+        f'<div class="kpi-label">{label}</div>'
+        f'{delta_html}'
+        f'</div>'
+    )
 
 
 def _insight_html(text: str, kind: str = "insight") -> str:
     cls = {"risk": "risk-card", "rec": "rec-card", "outlook": "outlook-card"}.get(kind, "insight-card")
     icon = {"risk": "⚠️", "rec": "✦", "outlook": "🔭"}.get(kind, "•")
     return f'<div class="insight-card {cls}">{icon} {text}</div>'
+
+
+def _exec_card(eyebrow: str, body: str) -> str:
+    """Premium executive insight card with gold eyebrow label."""
+    return (
+        f'<div class="exec-card">'
+        f'<div class="exec-card-eyebrow">{eyebrow}</div>'
+        f'{body}'
+        f'</div>'
+    )
 
 
 def _badge(text: str, kind: str) -> str:
@@ -386,12 +559,11 @@ def page_gcc_overview():
     src_url    = wb_meta.get("source_url", "https://data.worldbank.org")
     updated_at = wb_meta.get("last_updated", "—")
 
-    _banner(
-        "🌍 GCC Youth Employment Intelligence Hub",
-        f"Regional comparative analysis · Six-country dashboard · 2010–2024 · Source: {src_label}",
-    )
-
     if not is_cache_available():
+        _banner(
+            "🌍 GCC Youth Employment Intelligence Hub",
+            "Regional comparative analysis · Six-country dashboard · 2010–2024",
+        )
         st.warning(
             "⚠ Local data cache not found. Use the **🔄 Refresh Data** button in the sidebar "
             "to fetch real data from World Bank Open Data.",
@@ -399,14 +571,59 @@ def page_gcc_overview():
         )
         return
 
-    # ── Source attribution strip ──────────────────────────────────────────────
-    st.markdown(
-        f'<div style="font-size:0.75rem; color:#666; margin-bottom:0.8rem;">'
-        f'📡 <strong>Data:</strong> <a href="{src_url}" target="_blank">{src_label}</a> '
-        f'&nbsp;|&nbsp; Last fetched: {updated_at}'
-        f'</div>',
-        unsafe_allow_html=True,
+    # ── Compute hero stats (youth unemployment — flagship indicator) ──────────
+    _hero_ind = "youth_unemployment_rate"
+    _hero_stats = {c: gcc_data.get_trend_stats(c, _hero_ind) for c in gcc_data.COUNTRIES}
+    _gcc_avg_unem = sum(s["latest"] for s in _hero_stats.values()) / len(_hero_stats)
+    _best_country = min(_hero_stats, key=lambda c: _hero_stats[c]["latest"])
+    _worst_country = max(_hero_stats, key=lambda c: _hero_stats[c]["latest"])
+    _n_improving = sum(1 for s in _hero_stats.values() if s["improving"])
+    _best_flag = gcc_data.COUNTRIES[_best_country]["flag"]
+
+    hero_stats_html = (
+        f'<div class="hero-stats">'
+        f'<div class="hero-stat">'
+        f'  <div class="hero-stat-val">{_gcc_avg_unem:.1f}%</div>'
+        f'  <div class="hero-stat-lbl">GCC Avg Unemployment</div>'
+        f'  <div class="hero-stat-sub">Youth (15–24)</div>'
+        f'</div>'
+        f'<div class="hero-stat">'
+        f'  <div class="hero-stat-val">{_best_flag} {_hero_stats[_best_country]["latest"]:.1f}%</div>'
+        f'  <div class="hero-stat-lbl">Best Performer</div>'
+        f'  <div class="hero-stat-sub">{_best_country}</div>'
+        f'</div>'
+        f'<div class="hero-stat">'
+        f'  <div class="hero-stat-val">{_n_improving}/6</div>'
+        f'  <div class="hero-stat-lbl">Countries Improving</div>'
+        f'  <div class="hero-stat-sub">Youth unemployment</div>'
+        f'</div>'
+        f'<div class="hero-stat">'
+        f'  <div class="hero-stat-val">{_hero_stats[_worst_country]["latest"]:.1f}%</div>'
+        f'  <div class="hero-stat-lbl">Highest Rate</div>'
+        f'  <div class="hero-stat-sub">{_worst_country}</div>'
+        f'</div>'
+        f'<div class="hero-stat">'
+        f'  <div class="hero-stat-val">5</div>'
+        f'  <div class="hero-stat-lbl">Indicators Tracked</div>'
+        f'  <div class="hero-stat-sub">WB Open Data</div>'
+        f'</div>'
+        f'</div>'
     )
+
+    st.markdown(f"""
+    <div class="hero-banner">
+        <div class="hero-eyebrow">GCC STRATEGIC INTELLIGENCE PLATFORM</div>
+        <h1 class="hero-title">🌍 GCC Youth Employment Intelligence Hub</h1>
+        <p class="hero-subtitle">
+            AI-powered statistical intelligence for Gulf policy planning and youth labour market strategy
+        </p>
+        <p class="hero-mission">
+            Six GCC nations · Five World Bank indicators · 2010–2024 · {src_label} · Updated: {updated_at}
+        </p>
+        <hr class="hero-divider">
+        {hero_stats_html}
+    </div>
+    """, unsafe_allow_html=True)
 
     ind = st.selectbox(
         "Select Indicator",
@@ -521,11 +738,11 @@ def page_gcc_overview():
                        xaxis_title="Year", yaxis_title="")
     st.plotly_chart(fig3, use_container_width=True)
 
-    # ── AI Regional Intelligence Summary ─────────────────────────────────────
+    # ── AI Regional Intelligence Snapshot ────────────────────────────────────
     _section("AI Regional Intelligence Snapshot")
     st.markdown(
-        '<div style="font-size:0.78rem;color:#666;margin-bottom:0.6rem;">'
-        'Quick risk classification for all GCC countries — based on latest value, trend, and target range.'
+        '<div class="data-source-strip">'
+        '🤖 Real-time risk classification — based on latest value, trend direction, and optimal target range'
         '</div>',
         unsafe_allow_html=True,
     )
@@ -539,16 +756,19 @@ def page_gcc_overview():
             latest=s["latest"],
             slope=s["slope"],
             improving=improving_c,
-            uncertainty_pct=10.0,  # overview default
+            uncertainty_pct=10.0,
             historical=historical_s,
         )
-        badge_html = _badge(rp.label, rp.badge_color)
+        trend_arrow = "↓" if s["yoy_change"] < 0 else "↑"
+        trend_color = "#1A7A4A" if ((s["yoy_change"] < 0 and lib) or (s["yoy_change"] > 0 and not lib)) else "#A93226"
         ri_cols[i].markdown(
-            f'<div style="background:white;border-radius:8px;padding:0.6rem 0.8rem;'
-            f'box-shadow:0 1px 6px rgba(0,0,0,0.07);text-align:center;">'
-            f'<div style="font-size:0.8rem;font-weight:600;margin-bottom:4px;">'
-            f'{info["flag"]} {country}</div>'
-            f'{badge_html}'
+            f'<div class="country-intel-card">'
+            f'<div style="font-size:1.1rem;">{info["flag"]}</div>'
+            f'<div style="font-size:0.78rem;font-weight:700;margin:3px 0;">{country}</div>'
+            f'<div style="font-size:1.1rem;font-weight:800;color:#1B4F72;">{s["latest"]:.1f}%</div>'
+            f'<div style="font-size:0.70rem;color:{trend_color};font-weight:600;">'
+            f'{trend_arrow} {abs(s["yoy_change"]):.1f}pp YoY</div>'
+            f'<div style="margin-top:5px;">{_badge(rp.label, rp.badge_color)}</div>'
             f'</div>',
             unsafe_allow_html=True,
         )
@@ -581,8 +801,8 @@ def page_country_explorer():
     lib = meta["lower_is_better"]
 
     _banner(
-        f"{info['flag']} {country} — Employment Intelligence",
-        f"{meta['name']} · {info['vision']} · In-depth analysis 2015–2024",
+        f"{info['flag']} {country} — Strategic Employment Intelligence",
+        f"{meta['name']} · {info['vision']} · 2010–2024 · Source: World Bank Open Data",
     )
 
     # ── KPI row ───────────────────────────────────────────────────────────────
@@ -666,15 +886,17 @@ def page_country_explorer():
     fig2.update_layout(yaxis_title="YoY Change (pp)", height=280)
     st.plotly_chart(fig2, use_container_width=True)
 
-    # ── Country context card ──────────────────────────────────────────────────
+    # ── Country context executive card ───────────────────────────────────────
     ctx = intel_module._COUNTRY_CONTEXT.get(country, {})
     if ctx:
-        st.markdown(f"""
-        <div class="insight-card">
-            <strong>🏛 {info['vision']} Context</strong><br>
-            <span style="color:{_SUCCESS}">✦ Strength:</span> {ctx.get('strength','')}<br>
-            <span style="color:{_DANGER}">⚠ Challenge:</span> {ctx.get('challenge','')}
-        </div>""", unsafe_allow_html=True)
+        st.markdown(
+            _exec_card(
+                f"🏛 {info['vision']} — STRATEGIC CONTEXT",
+                f'<span style="color:{_SUCCESS}">✦ Competitive Strength:</span> {ctx.get("strength","")}<br>'
+                f'<span style="color:{_DANGER}">⚠ Structural Challenge:</span> {ctx.get("challenge","")}',
+            ),
+            unsafe_allow_html=True,
+        )
 
     # ── AI Risk & Intelligence Quick Panel ───────────────────────────────────
     _section("AI Intelligence Assessment")
@@ -721,8 +943,8 @@ def page_country_explorer():
 
 def page_forecast_center():
     _banner(
-        "📈 Forecast Center",
-        "AI-powered time-series forecasting · Model selection via expanding-window cross-validation",
+        "📈 AI Forecast Center",
+        "Time-series forecasting · Expanding-window cross-validation · Six model ensemble · Probabilistic prediction intervals",
     )
 
     # ── Config ───────────────────────────────────────────────────────────────
@@ -773,18 +995,18 @@ def page_forecast_center():
         st.markdown("<br>", unsafe_allow_html=True)
         _section("Results")
 
-        # Best model badge
-        urgency_color = {"Low": _SUCCESS, "Medium": _WARNING, "High": _DANGER}.get(
-            "Low", _PRIMARY
+        smape_tier = "Excellent" if backtest.best_model_smape < 5 else ("Good" if backtest.best_model_smape < 12 else "Moderate")
+        smape_color = _SUCCESS if backtest.best_model_smape < 5 else (_WARNING if backtest.best_model_smape < 12 else _DANGER)
+        st.markdown(
+            _exec_card(
+                "🏆 MODEL SELECTION RESULT — EXPANDING-WINDOW CROSS-VALIDATION",
+                f'<strong>Best Model:</strong> {backtest.best_model_name} &nbsp;|&nbsp; '
+                f'sMAPE: <strong style="color:{smape_color}">{backtest.best_model_smape:.2f}%</strong> '
+                f'(<em>{smape_tier}</em>) &nbsp;|&nbsp; '
+                f'RMSE: <strong>{backtest.best_model_rmse:.3f}</strong>',
+            ),
+            unsafe_allow_html=True,
         )
-        st.markdown(f"""
-        <div style="background:white;border-radius:10px;padding:1rem 1.5rem;
-                    box-shadow:0 2px 10px rgba(0,0,0,0.07);
-                    border-left:5px solid {_GOLD};margin-bottom:1rem;">
-            🏆 <strong>Best Model:</strong> {backtest.best_model_name} &nbsp;|&nbsp;
-            sMAPE: <strong>{backtest.best_model_smape:.2f}%</strong> &nbsp;|&nbsp;
-            RMSE: <strong>{backtest.best_model_rmse:.3f}</strong>
-        </div>""", unsafe_allow_html=True)
 
         tab1, tab2, tab3 = st.tabs(["📈 Forecast Chart", "📊 Model Comparison", "📋 Forecast Table"])
 
@@ -849,7 +1071,7 @@ def page_forecast_center():
 def page_ai_insights():
     _banner(
         "🤖 AI Decision Intelligence",
-        "Bilingual executive analysis · Policy recommendations · Strategic outlook",
+        "Ministry-grade bilingual analysis · Strategic risk engine · Policy recommendations · Comparative GCC intelligence",
     )
 
     if "fc_results" not in st.session_state or "fc_meta" not in st.session_state:
@@ -908,8 +1130,10 @@ def page_ai_insights():
         )
 
         _section("Executive Summary")
-        st.markdown(f'<div class="insight-card">{report.executive_summary}</div>',
-                    unsafe_allow_html=True)
+        st.markdown(
+            _exec_card("EXECUTIVE INTELLIGENCE SUMMARY", report.executive_summary),
+            unsafe_allow_html=True,
+        )
 
         _section("Key Insights")
         for ins in report.key_insights:
@@ -920,13 +1144,13 @@ def page_ai_insights():
         with col_gcc:
             _section("Comparative GCC Intelligence")
             st.markdown(
-                f'<div class="insight-card">{report.gcc_comparison}</div>',
+                _exec_card("REGIONAL BENCHMARKING ANALYSIS", report.gcc_comparison),
                 unsafe_allow_html=True,
             )
         with col_causal:
             _section("Causal & Driver Interpretation")
             st.markdown(
-                f'<div class="insight-card">{report.causal_interpretation}</div>',
+                _exec_card("STRUCTURAL DRIVER ANALYSIS", report.causal_interpretation),
                 unsafe_allow_html=True,
             )
 
@@ -945,8 +1169,10 @@ def page_ai_insights():
             st.markdown(_insight_html(rec, "rec"), unsafe_allow_html=True)
 
         _section("Forecast Outlook")
-        st.markdown(f'<div class="insight-card outlook-card">{report.forecast_outlook}</div>',
-                    unsafe_allow_html=True)
+        st.markdown(
+            _exec_card("🔭 FORECAST OUTLOOK & STRATEGIC HORIZON", report.forecast_outlook),
+            unsafe_allow_html=True,
+        )
 
     # ── Arabic ───────────────────────────────────────────────────────────────
     with tab_ar:
@@ -1010,7 +1236,7 @@ def page_ai_insights():
 def page_scenario_simulator():
     _banner(
         "⚙️ Policy Scenario Simulator",
-        "AI-powered 'what-if' analysis · Elasticity-based impact modelling · Strategic planning tool",
+        "What-if analysis · Elasticity-based impact modelling · Bilingual narrative · Strategic policy planning",
     )
 
     if "fc_results" not in st.session_state or "fc_meta" not in st.session_state:
@@ -1021,11 +1247,15 @@ def page_scenario_simulator():
     country, ind, freq_code, horizon, confidence = st.session_state["fc_meta"]
     meta = gcc_data.INDICATORS[ind]
 
-    st.markdown(f"""
-    <div class="insight-card" style="margin-bottom:1rem;">
-        Simulating scenarios for: <strong>{gcc_data.COUNTRIES[country]['flag']} {country}</strong> —
-        <strong>{meta['name']}</strong> · Baseline model: <strong>{backtest.best_model_name}</strong>
-    </div>""", unsafe_allow_html=True)
+    st.markdown(
+        _exec_card(
+            "SCENARIO CONFIGURATION",
+            f'Country: <strong>{gcc_data.COUNTRIES[country]["flag"]} {country}</strong> &nbsp;|&nbsp; '
+            f'Indicator: <strong>{meta["name"]}</strong> &nbsp;|&nbsp; '
+            f'Baseline Model: <strong>{backtest.best_model_name}</strong>',
+        ),
+        unsafe_allow_html=True,
+    )
 
     param_configs = scenario_module.get_param_config()
 
@@ -1138,8 +1368,13 @@ def page_scenario_simulator():
 
         # ── AI Narrative ─────────────────────────────────────────────────────
         _section("AI Scenario Interpretation")
-        st.markdown(f'<div class="insight-card {"rec-card" if impact_good else "risk-card"}">{result.summary_en}</div>',
-                    unsafe_allow_html=True)
+        st.markdown(
+            _exec_card(
+                "AI SCENARIO NARRATIVE",
+                result.summary_en,
+            ),
+            unsafe_allow_html=True,
+        )
         st.markdown(f'<div class="arabic-block">{result.summary_ar}</div>',
                     unsafe_allow_html=True)
 
@@ -1150,8 +1385,8 @@ def page_scenario_simulator():
 
 def page_explainability():
     _banner(
-        "🔬 Explainability Center",
-        "Transparent AI · Model diagnostics · Prediction interval analysis · Decomposition",
+        "🔬 AI Explainability Center",
+        "Transparent forecasting · Model diagnostics · Feature importance · Decomposition · Uncertainty analysis",
     )
 
     if "fc_results" not in st.session_state or "fc_meta" not in st.session_state:
@@ -1172,12 +1407,15 @@ def page_explainability():
     # ── Model Performance ─────────────────────────────────────────────────────
     with tab_model:
         _section("Cross-Validation Model Comparison")
-        st.markdown("""
-        <div class="insight-card" style="margin-bottom:1rem;">
-            Models were evaluated using <strong>expanding-window cross-validation</strong>.
-            sMAPE (Symmetric Mean Absolute Percentage Error) is the primary selection metric —
-            it is robust to near-zero values and symmetric around over/under-forecasting.
-        </div>""", unsafe_allow_html=True)
+        st.markdown(
+            _exec_card(
+                "METHODOLOGY — EXPANDING-WINDOW CROSS-VALIDATION",
+                "Models were evaluated using <strong>expanding-window cross-validation</strong>. "
+                "sMAPE (Symmetric Mean Absolute Percentage Error) is the primary selection metric — "
+                "it is robust to near-zero values and symmetric around over/under-forecasting errors.",
+            ),
+            unsafe_allow_html=True,
+        )
 
         comp = backtest.comparison_df.copy()
 
@@ -1230,12 +1468,16 @@ def page_explainability():
                 ))
                 fig.update_layout(xaxis_title="Importance Score", height=max(300, len(fi) * 22 + 60))
                 st.plotly_chart(fig, use_container_width=True)
-                st.markdown("""
-                <div class="insight-card">
-                    Feature importance reflects how much each input variable contributed to the LightGBM model's
-                    predictions across the training period. Lag features capture autocorrelation; rolling statistics
-                    capture local trends; calendar features (month, year) capture seasonality and drift.
-                </div>""", unsafe_allow_html=True)
+                st.markdown(
+                    _exec_card(
+                        "FEATURE IMPORTANCE — LIGHTGBM INTERPRETATION",
+                        "Feature importance reflects how much each input variable contributed to the LightGBM model's "
+                        "predictions. <strong>Lag features</strong> capture autocorrelation; "
+                        "<strong>rolling statistics</strong> capture local trend momentum; "
+                        "<strong>calendar features</strong> (month, year) capture seasonality and structural drift.",
+                    ),
+                    unsafe_allow_html=True,
+                )
             except Exception as e:
                 st.info(f"Feature importance not available for {best_model.name}: {e}")
         else:
@@ -1296,15 +1538,17 @@ def page_explainability():
         fig.update_layout(yaxis_title="Interval Width (pp)", height=300)
         st.plotly_chart(fig, use_container_width=True)
 
-        st.markdown(f"""
-        <div class="insight-card outlook-card">
-            <strong>🔭 Uncertainty Interpretation</strong><br>
-            The <strong>{confidence*100:.0f}% prediction interval</strong> means that if the model assumptions hold,
-            {confidence*100:.0f}% of actual future values should fall within the shaded band.
-            Wider intervals at longer horizons reflect compounding uncertainty — a natural property of all
-            time-series forecasting models. The average interval width is
-            <strong>{widths.mean():.2f} percentage points</strong>.
-        </div>""", unsafe_allow_html=True)
+        st.markdown(
+            _exec_card(
+                "🔭 UNCERTAINTY INTERPRETATION",
+                f'The <strong>{confidence*100:.0f}% prediction interval</strong> means that if model assumptions hold, '
+                f'{confidence*100:.0f}% of actual future values should fall within the shaded band. '
+                f'Wider intervals at longer horizons reflect compounding uncertainty — a natural property of all '
+                f'time-series forecasting models. Average interval width: '
+                f'<strong>{widths.mean():.2f} percentage points</strong>.',
+            ),
+            unsafe_allow_html=True,
+        )
 
 
 # ──────────────────────────────────────────────────────────────────────────────
