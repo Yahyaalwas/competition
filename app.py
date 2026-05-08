@@ -124,15 +124,46 @@ div[data-testid="metric-container"] {{ background: white; border-radius: 8px; pa
 
 /* ── Badge ── */
 .badge {{
-    display:inline-block; padding: 3px 10px; border-radius: 20px;
+    display:inline-block; padding: 4px 12px; border-radius: 20px;
     font-size: 0.75rem; font-weight: 600; letter-spacing: .3px;
+    margin: 2px;
 }}
-.badge-improving {{ background:#D5F5E3; color:{_SUCCESS}; }}
-.badge-worsening {{ background:#FADBD8; color:{_DANGER}; }}
-.badge-stable    {{ background:#EAF2FF; color:{_PRIMARY}; }}
-.badge-high      {{ background:#FADBD8; color:{_DANGER}; }}
-.badge-medium    {{ background:#FDEBD0; color:{_WARNING}; }}
-.badge-low       {{ background:#D5F5E3; color:{_SUCCESS}; }}
+.badge-improving          {{ background:#D5F5E3; color:{_SUCCESS}; }}
+.badge-worsening          {{ background:#FADBD8; color:{_DANGER}; }}
+.badge-stable             {{ background:#EAF2FF; color:{_PRIMARY}; }}
+.badge-high               {{ background:#FADBD8; color:{_DANGER}; }}
+.badge-medium             {{ background:#FDEBD0; color:{_WARNING}; }}
+.badge-low                {{ background:#D5F5E3; color:{_SUCCESS}; }}
+.badge-high-risk          {{ background:#FADBD8; color:{_DANGER}; border: 1px solid {_DANGER}; }}
+.badge-moderate-risk      {{ background:#FDEBD0; color:{_WARNING}; border: 1px solid {_WARNING}; }}
+.badge-stable             {{ background:#EAF2FF; color:{_PRIMARY}; border: 1px solid {_PRIMARY}; }}
+.badge-recovery           {{ background:#E8F8F5; color:#148F77; border: 1px solid #148F77; }}
+.badge-structural-pressure{{ background:#FDFEFE; color:#7B241C; border: 1px solid #7B241C; }}
+.badge-growth-opportunity {{ background:#EAFAF1; color:{_SUCCESS}; border: 1px solid {_SUCCESS}; }}
+.badge-inflationary       {{ background:#FEF9E7; color:#9A7D0A; border: 1px solid #9A7D0A; }}
+.badge-labor-volatility   {{ background:#F5EEF8; color:#6C3483; border: 1px solid #6C3483; }}
+
+/* ── Alert cards ── */
+.alert-card {{
+    border-radius: 8px; padding: 0.9rem 1.2rem;
+    margin: 0.4rem 0; font-size: 0.9rem;
+    border-left: 5px solid;
+}}
+.alert-critical {{ background:#FDEDEC; border-color:{_DANGER}; }}
+.alert-warning  {{ background:#FEF9E7; border-color:{_WARNING}; }}
+.alert-success  {{ background:#EAFAF1; border-color:{_SUCCESS}; }}
+.alert-info     {{ background:#EAF2FF; border-color:{_PRIMARY}; }}
+.alert-title    {{ font-weight:700; font-size:0.88rem; margin-bottom:4px; }}
+.alert-msg      {{ font-size:0.84rem; opacity:0.9; }}
+
+/* ── Risk panel ── */
+.risk-panel {{
+    background: white; border-radius: 10px; padding: 1rem 1.3rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.07); margin-bottom: 1rem;
+    border-top: 3px solid {_DANGER};
+}}
+.risk-label {{ font-size: 1.05rem; font-weight: 700; margin-bottom: 4px; }}
+.risk-rationale {{ font-size: 0.84rem; color: #555; line-height: 1.5; }}
 </style>
 """, unsafe_allow_html=True)
 
@@ -298,8 +329,38 @@ def _insight_html(text: str, kind: str = "insight") -> str:
 
 
 def _badge(text: str, kind: str) -> str:
-    cls = f"badge-{kind.lower()}"
+    cls = f"badge-{kind.lower().replace(' ', '-')}"
     return f'<span class="badge {cls}">{text}</span>'
+
+
+def _alert_card(title: str, message: str, level: str = "info") -> str:
+    icons = {"critical": "🚨", "warning": "⚠️", "success": "✅", "info": "ℹ️"}
+    icon = icons.get(level, "•")
+    return (
+        f'<div class="alert-card alert-{level}">'
+        f'<div class="alert-title">{icon} {title}</div>'
+        f'<div class="alert-msg">{message}</div>'
+        f'</div>'
+    )
+
+
+def _risk_panel(label: str, severity: str, confidence: str, rationale: str) -> str:
+    colors = {
+        "low": "#1A7A4A",
+        "medium": "#C07820",
+        "high": "#A93226",
+        "critical": "#7B241C",
+    }
+    color = colors.get(severity, "#1B4F72")
+    return (
+        f'<div class="risk-panel" style="border-top-color:{color};">'
+        f'<div class="risk-label" style="color:{color};">{label}</div>'
+        f'<div style="font-size:0.75rem;color:#888;margin-bottom:6px;">'
+        f'Severity: {severity.title()} &nbsp;|&nbsp; Forecast Confidence: {confidence}'
+        f'</div>'
+        f'<div class="risk-rationale">{rationale}</div>'
+        f'</div>'
+    )
 
 
 def _banner(title: str, subtitle: str) -> None:
@@ -460,6 +521,38 @@ def page_gcc_overview():
                        xaxis_title="Year", yaxis_title="")
     st.plotly_chart(fig3, use_container_width=True)
 
+    # ── AI Regional Intelligence Summary ─────────────────────────────────────
+    _section("AI Regional Intelligence Snapshot")
+    st.markdown(
+        '<div style="font-size:0.78rem;color:#666;margin-bottom:0.6rem;">'
+        'Quick risk classification for all GCC countries — based on latest value, trend, and target range.'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+    ri_cols = st.columns(6)
+    for i, (country, info) in enumerate(gcc_data.COUNTRIES.items()):
+        s = stats[country]
+        historical_s = gcc_data.get_series(country, ind)
+        _, _, improving_c = intel_module._slope_label(s["slope"], lib)
+        rp = intel_module.compute_risk_profile(
+            indicator=ind,
+            latest=s["latest"],
+            slope=s["slope"],
+            improving=improving_c,
+            uncertainty_pct=10.0,  # overview default
+            historical=historical_s,
+        )
+        badge_html = _badge(rp.label, rp.badge_color)
+        ri_cols[i].markdown(
+            f'<div style="background:white;border-radius:8px;padding:0.6rem 0.8rem;'
+            f'box-shadow:0 1px 6px rgba(0,0,0,0.07);text-align:center;">'
+            f'<div style="font-size:0.8rem;font-weight:600;margin-bottom:4px;">'
+            f'{info["flag"]} {country}</div>'
+            f'{badge_html}'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+
 
 # ──────────────────────────────────────────────────────────────────────────────
 # PAGE 2 – Country Explorer
@@ -582,6 +675,44 @@ def page_country_explorer():
             <span style="color:{_SUCCESS}">✦ Strength:</span> {ctx.get('strength','')}<br>
             <span style="color:{_DANGER}">⚠ Challenge:</span> {ctx.get('challenge','')}
         </div>""", unsafe_allow_html=True)
+
+    # ── AI Risk & Intelligence Quick Panel ───────────────────────────────────
+    _section("AI Intelligence Assessment")
+    _, _, improving_c = intel_module._slope_label(s["slope"], lib)
+    rp = intel_module.compute_risk_profile(
+        indicator=ind,
+        latest=s["latest"],
+        slope=s["slope"],
+        improving=improving_c,
+        uncertainty_pct=10.0,
+        historical=annual,
+    )
+    alerts = intel_module.generate_strategic_alerts(
+        country=country,
+        indicator=ind,
+        latest=s["latest"],
+        slope=s["slope"],
+        improving=improving_c,
+        risk_profile=rp,
+        gcc_avg_latest=s.get("gcc_avg_2024"),
+        yoy_change=s["yoy_change"],
+    )
+
+    ai_c1, ai_c2 = st.columns([1, 2])
+    with ai_c1:
+        st.markdown(_risk_panel(rp.label, rp.severity, rp.confidence, rp.rationale),
+                    unsafe_allow_html=True)
+    with ai_c2:
+        if alerts:
+            for alert in alerts[:3]:
+                st.markdown(_alert_card(alert.title, alert.message, alert.level),
+                            unsafe_allow_html=True)
+        else:
+            st.markdown(
+                _alert_card("No Active Strategic Alerts",
+                            "All indicators are within normal operating parameters.", "info"),
+                unsafe_allow_html=True,
+            )
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -738,14 +869,43 @@ def page_ai_insights():
             gcc_average=gcc_avg,
         )
 
+    # ── Strategic Alerts strip ────────────────────────────────────────────────
+    if report.strategic_alerts:
+        _section("Strategic Alerts")
+        for alert in report.strategic_alerts:
+            st.markdown(_alert_card(alert.title, alert.message, alert.level),
+                        unsafe_allow_html=True)
+        st.markdown("<br>", unsafe_allow_html=True)
+
     tab_en, tab_ar = st.tabs(["🇬🇧 English Report", "🇸🇦 التقرير العربي"])
 
     # ── English ──────────────────────────────────────────────────────────────
     with tab_en:
+        # Risk profile + trend/urgency badges
         trend_badge = _badge(report.trend_label, report.trend_label.lower())
         urgency_badge = _badge(f"Priority: {report.urgency_level}", report.urgency_level.lower())
-        st.markdown(f"{trend_badge} {urgency_badge}", unsafe_allow_html=True)
+        risk_badge = _badge(
+            f"Risk: {report.risk_profile.label}",
+            report.risk_profile.badge_color,
+        )
+        conf_badge = _badge(
+            f"Confidence: {report.risk_profile.confidence}",
+            "low" if report.risk_profile.confidence == "High" else "medium",
+        )
+        st.markdown(f"{trend_badge} {urgency_badge} {risk_badge} {conf_badge}",
+                    unsafe_allow_html=True)
         st.markdown("<br>", unsafe_allow_html=True)
+
+        # Risk Panel
+        st.markdown(
+            _risk_panel(
+                report.risk_profile.label,
+                report.risk_profile.severity,
+                report.risk_profile.confidence,
+                report.risk_profile.rationale,
+            ),
+            unsafe_allow_html=True,
+        )
 
         _section("Executive Summary")
         st.markdown(f'<div class="insight-card">{report.executive_summary}</div>',
@@ -754,6 +914,21 @@ def page_ai_insights():
         _section("Key Insights")
         for ins in report.key_insights:
             st.markdown(_insight_html(ins), unsafe_allow_html=True)
+
+        # GCC Comparison & Causal Interpretation side by side
+        col_gcc, col_causal = st.columns(2)
+        with col_gcc:
+            _section("Comparative GCC Intelligence")
+            st.markdown(
+                f'<div class="insight-card">{report.gcc_comparison}</div>',
+                unsafe_allow_html=True,
+            )
+        with col_causal:
+            _section("Causal & Driver Interpretation")
+            st.markdown(
+                f'<div class="insight-card">{report.causal_interpretation}</div>',
+                unsafe_allow_html=True,
+            )
 
         col_r, col_f = st.columns(2)
         with col_r:
@@ -776,7 +951,8 @@ def page_ai_insights():
     # ── Arabic ───────────────────────────────────────────────────────────────
     with tab_ar:
         trend_badge_ar = _badge(report.trend_label_ar, report.trend_label.lower())
-        st.markdown(f"{trend_badge_ar}", unsafe_allow_html=True)
+        risk_badge_ar = _badge(report.risk_profile.label_ar, report.risk_profile.badge_color)
+        st.markdown(f"{trend_badge_ar} {risk_badge_ar}", unsafe_allow_html=True)
         st.markdown("<br>", unsafe_allow_html=True)
 
         def _ar_block(title: str, content: str) -> None:
@@ -791,18 +967,36 @@ def page_ai_insights():
         _ar_block("الملخص التنفيذي", report.ar_executive_summary)
         _ar_list_block("أبرز المؤشرات والرؤى", report.ar_key_insights)
 
+        col_gcc_ar, col_causal_ar = st.columns(2)
+        with col_gcc_ar:
+            _ar_block("مقارنة خليجية", report.ar_gcc_comparison)
+        with col_causal_ar:
+            _ar_block("العوامل السببية والمحركات", report.ar_causal_interpretation)
+
         col_r2, col_f2 = st.columns(2)
         with col_r2:
             _ar_list_block("تحليل المخاطر", report.ar_risk_assessment)
         with col_f2:
             _ar_list_block("التوصيات الاستراتيجية", report.ar_policy_recommendations)
 
-        _ar_block("النظرة المستقبلية", report.ar_forecast_outlook)
+        _ar_block("النظرة المستقبلية والتوقعات", report.ar_forecast_outlook)
+
+        # Arabic alerts
+        if report.strategic_alerts:
+            st.markdown("**التنبيهات الاستراتيجية**")
+            for alert in report.strategic_alerts:
+                st.markdown(
+                    f'<div class="arabic-block alert-{alert.level}" '
+                    f'style="border-right:4px solid; margin:0.3rem 0; padding:0.8rem 1rem;">'
+                    f'<strong>{alert.title_ar}</strong><br>{alert.message_ar}'
+                    f'</div>',
+                    unsafe_allow_html=True,
+                )
 
         # Download
         ar_report_text = intel_module.format_arabic_executive_report(report)
         st.download_button(
-            "⬇ تحميل التقرير العربي",
+            "⬇ تحميل التقرير العربي الكامل",
             ar_report_text.encode("utf-8"),
             "gcc_executive_report_ar.txt",
             "text/plain",

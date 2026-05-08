@@ -2,11 +2,12 @@
 AI Decision Intelligence Engine.
 
 Generates bilingual (English / Arabic) executive narratives, policy
-recommendations, risk assessments, and strategic outlooks from forecast data.
+recommendations, risk assessments, strategic alerts, and comparative
+GCC intelligence from forecast data.
 """
 
 from dataclasses import dataclass, field
-from typing import List, Optional
+from typing import Dict, List, Optional
 import numpy as np
 import pandas as pd
 
@@ -14,6 +15,30 @@ import pandas as pd
 # ──────────────────────────────────────────────────────────────────────────────
 # Data structures
 # ──────────────────────────────────────────────────────────────────────────────
+
+@dataclass
+class RiskProfile:
+    label: str           # Stable | Moderate Risk | High Risk | Recovery Phase |
+                         # Structural Pressure | Growth Opportunity |
+                         # Inflationary Pressure | Labor Market Volatility
+    label_ar: str
+    severity: str        # "low" | "medium" | "high" | "critical"
+    confidence: str      # "High" | "Moderate" | "Low"
+    badge_color: str     # CSS class suffix used in app.py
+    rationale: str
+    rationale_ar: str
+
+
+@dataclass
+class StrategicAlert:
+    title: str
+    title_ar: str
+    message: str
+    message_ar: str
+    level: str           # "info" | "warning" | "critical" | "success"
+    indicator: str
+    country: str
+
 
 @dataclass
 class IntelligenceReport:
@@ -28,18 +53,26 @@ class IntelligenceReport:
     influencing_factors: List[str]
     policy_recommendations: List[str]
     forecast_outlook: str
+    gcc_comparison: str
+    causal_interpretation: str
     # Arabic
     ar_executive_summary: str
     ar_key_insights: List[str]
     ar_risk_assessment: List[str]
     ar_policy_recommendations: List[str]
     ar_forecast_outlook: str
+    ar_gcc_comparison: str
+    ar_causal_interpretation: str
     # Metadata
     trend_label: str        # "Improving" | "Worsening" | "Stable"
     trend_label_ar: str
     urgency_level: str      # "High" | "Medium" | "Low"
     model_name: str
     model_smape: float
+    risk_profile: RiskProfile = field(default_factory=lambda: RiskProfile(
+        "Stable", "مستقر", "low", "High", "stable", "", ""
+    ))
+    strategic_alerts: List[StrategicAlert] = field(default_factory=list)
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -102,6 +135,16 @@ _COUNTRY_CONTEXT = {
         "challenge": "high public-sector dependency and graduate-skills mismatch",
         "strength_ar": "الإصلاحات الهيكلية المتسارعة في سوق العمل والتوسع السريع في القطاع الخاص",
         "challenge_ar": "الاعتماد المرتفع على القطاع الحكومي وعدم التوافق بين مهارات الخريجين ومتطلبات السوق",
+        "causal_drivers_en": [
+            "Nitaqat localisation quotas are gradually reshaping private-sector hiring patterns.",
+            "Rapid expansion of tourism, entertainment, and digital sectors creates new youth employment channels.",
+            "Vision 2030 capital projects support construction and infrastructure employment.",
+        ],
+        "causal_drivers_ar": [
+            "تُعيد حصص التوطين (نطاقات) تدريجيًا تشكيل أنماط التوظيف في القطاع الخاص.",
+            "التوسع السريع في السياحة والترفيه والقطاعات الرقمية يفتح قنوات توظيف جديدة للشباب.",
+            "مشاريع رأس المال في رؤية 2030 تدعم توظيف قطاعي البناء والبنية التحتية.",
+        ],
     },
     "UAE": {
         "vision": "UAE Centennial 2071",
@@ -109,6 +152,16 @@ _COUNTRY_CONTEXT = {
         "challenge": "maintaining competitiveness in attracting high-skilled national youth talent",
         "strength_ar": "البنية التحتية الرقمية العالمية والقاعدة الاقتصادية المتنوعة",
         "challenge_ar": "الحفاظ على التنافسية في استقطاب كفاءات الشباب المواطن",
+        "causal_drivers_en": [
+            "ADNOC and Mubadala investment mandates accelerate local talent pipelines.",
+            "Dubai's position as a global fintech and startup hub creates high-value employment pathways.",
+            "National AI and advanced technology strategies drive demand for skilled youth graduates.",
+        ],
+        "causal_drivers_ar": [
+            "تفويضات الاستثمار لأدنوك ومبادلة تُسرّع مسارات المواهب المحلية.",
+            "مكانة دبي مركزًا عالميًا للتكنولوجيا المالية والشركات الناشئة تُوجد مسارات توظيف عالية القيمة.",
+            "استراتيجيات الذكاء الاصطناعي والتكنولوجيا المتقدمة الوطنية تُحرّك الطلب على خريجي الشباب المهرة.",
+        ],
     },
     "Qatar": {
         "vision": "Qatar National Vision 2030",
@@ -116,6 +169,16 @@ _COUNTRY_CONTEXT = {
         "challenge": "expanding private-sector youth employment beyond the oil and gas sector",
         "strength_ar": "الثروة السيادية الضخمة والزخم الاقتصادي في مرحلة ما بعد كأس العالم 2022",
         "challenge_ar": "توسيع توظيف الشباب في القطاع الخاص خارج نطاق قطاع النفط والغاز",
+        "causal_drivers_en": [
+            "World Cup 2022 infrastructure legacy creates sustained demand in hospitality and services.",
+            "Qatar Investment Authority capital deployment supports economic diversification programmes.",
+            "LNG expansion plans provide revenue underpinning employment-linked public spending.",
+        ],
+        "causal_drivers_ar": [
+            "الإرث البنية التحتي لكأس العالم 2022 يُبقي الطلب مستمرًا في قطاعي الضيافة والخدمات.",
+            "توظيف رأس مال جهاز قطر للاستثمار يدعم برامج التنويع الاقتصادي.",
+            "خطط توسعة الغاز الطبيعي المسال توفر الإيرادات لدعم الإنفاق العام المرتبط بالتوظيف.",
+        ],
     },
     "Kuwait": {
         "vision": "Kuwait Vision 2035",
@@ -123,6 +186,16 @@ _COUNTRY_CONTEXT = {
         "challenge": "entrenched public-sector preference and slow private-sector development",
         "strength_ar": "عائدات النفط الضخمة التي توفر هامشًا ماليًا واسعًا للإصلاح",
         "challenge_ar": "الميل الراسخ نحو العمل الحكومي وبطء تطوير القطاع الخاص",
+        "causal_drivers_en": [
+            "Persistently high public-sector wage premium reduces incentives for private employment.",
+            "Kuwait Vision 2035 New Kuwait initiatives target economic diversification but progress is gradual.",
+            "Oil price cycles directly affect public spending capacity and public hiring volumes.",
+        ],
+        "causal_drivers_ar": [
+            "علاوة الأجر الحكومي المرتفعة باستمرار تُقلّص الحوافز للعمل الخاص.",
+            "مبادرات 'الكويت الجديدة' ضمن رؤية 2035 تستهدف التنويع الاقتصادي لكن التقدم تدريجي.",
+            "دورات أسعار النفط تؤثر مباشرةً في طاقة الإنفاق العام وأحجام التوظيف الحكومي.",
+        ],
     },
     "Bahrain": {
         "vision": "Bahrain Economic Vision 2030",
@@ -130,6 +203,16 @@ _COUNTRY_CONTEXT = {
         "challenge": "limited natural resource base intensifying diversification urgency",
         "strength_ar": "ريادة قطاع الخدمات المالية وسياسات سوق العمل التقدمية",
         "challenge_ar": "محدودية الموارد الطبيعية مما يُعجّل الحاجة إلى التنويع الاقتصادي",
+        "causal_drivers_en": [
+            "Labour Market Regulatory Authority (LMRA) reforms are the most progressive in the GCC.",
+            "Bahrain FinTech Bay and financial services cluster create high-quality graduate employment.",
+            "Lower fiscal buffers relative to peers make youth employment highly sensitive to oil shocks.",
+        ],
+        "causal_drivers_ar": [
+            "إصلاحات هيئة تنظيم سوق العمل هي الأكثر تقدمًا في منطقة الخليج.",
+            "مبادرة البحرين للتكنولوجيا المالية وعنقود الخدمات المالية يوفران توظيفًا عالي الجودة للخريجين.",
+            "انخفاض الاحتياطيات المالية مقارنةً بالدول المجاورة يجعل توظيف الشباب حساسًا لصدمات النفط.",
+        ],
     },
     "Oman": {
         "vision": "Oman Vision 2040",
@@ -137,6 +220,16 @@ _COUNTRY_CONTEXT = {
         "challenge": "higher youth population growth rate creating sustained labour market pressure",
         "strength_ar": "التنويع الاقتصادي المتسارع في السياحة والخدمات اللوجستية والصناعة",
         "challenge_ar": "المعدل المرتفع لنمو الشباب مما يولّد ضغطًا مستمرًا على سوق العمل",
+        "causal_drivers_en": [
+            "Oman Vision 2040 logistics and industrial clusters are creating structured graduate pathways.",
+            "Port of Sohar and Duqm economic zone expansion drive engineering and technical employment.",
+            "Higher youth population growth rate means labour market absorption must outpace cohort growth.",
+        ],
+        "causal_drivers_ar": [
+            "عناقيد اللوجستيات والصناعة ضمن رؤية عُمان 2040 تُوجد مسارات منظمة للخريجين.",
+            "توسّع ميناء صحار والمنطقة الاقتصادية الخاصة بالدقم يدفعان التوظيف الهندسي والتقني.",
+            "المعدل المرتفع لنمو شريحة الشباب يعني أن قدرة سوق العمل على الاستيعاب يجب أن تتجاوز نمو الفئة.",
+        ],
     },
 }
 
@@ -167,29 +260,6 @@ _INDICATOR_POLICY = {
             "الاستعانة بتقييم مستقل للعوائق الهيكلية أمام التوظيف في القطاع الخاص.",
         ],
     },
-    "labor_force_participation": {
-        "improving": [
-            "Deepen flexible and remote-work policies to maintain participation gains.",
-            "Invest in women-in-tech programmes where gender gaps remain.",
-            "Strengthen employer incentive schemes for retaining young workers.",
-        ],
-        "worsening": [
-            "Launch national participation campaigns targeting discouraged youth cohorts.",
-            "Introduce participation benchmarks in government procurement criteria.",
-            "Reduce friction in job-seeking through unified digital labour market platforms.",
-        ],
-        "improving_ar": [
-            "تعميق سياسات العمل المرن والعمل عن بُعد للحفاظ على مكاسب المشاركة.",
-            "الاستثمار في برامج المرأة في التقنية حيث لا تزال الفجوات قائمة.",
-            "تعزيز حوافز أصحاب العمل للاحتفاظ بالعمالة الشابة.",
-        ],
-        "worsening_ar": [
-            "إطلاق حملات وطنية تستهدف شريحة الشباب المحبطين عن العمل.",
-            "إدراج معايير مشاركة الشباب في شروط المشتريات الحكومية.",
-            "تخفيف الاحتكاك في البحث عن العمل عبر منصات رقمية موحّدة.",
-        ],
-    },
-    # ── World Bank indicator: GDP Growth Rate ─────────────────────────────────
     "gdp_growth": {
         "improving": [
             "Leverage fiscal headroom created by GDP growth to fund active labour market programmes.",
@@ -216,7 +286,6 @@ _INDICATOR_POLICY = {
             "تعزيز شبكات الحماية الاجتماعية لحماية توظيف الشباب في فترات النمو المنخفض.",
         ],
     },
-    # ── World Bank indicator: Inflation Rate ──────────────────────────────────
     "inflation": {
         "improving": [
             "Sustain inflation discipline through credible monetary and fiscal coordination.",
@@ -243,36 +312,38 @@ _INDICATOR_POLICY = {
             "تشخيص الاختناقات الهيكلية التي تُغذّي ضغوط التضخم المستمرة ومعالجتها.",
         ],
     },
-    # ── World Bank indicator: Population Growth Rate ──────────────────────────
     "population_growth": {
         "improving": [
             "Align education and vocational training supply with demographic growth projections.",
             "Use growing youth cohorts as a competitive advantage through targeted skills development.",
             "Invest in labour market data systems that track demographic demand-supply dynamics.",
+            "Build forward-looking workforce planning frameworks integrated with national vision targets.",
         ],
         "worsening": [
             "Review migration and residency policies affecting the active workforce composition.",
             "Invest in productivity-enhancing technology to offset declining labour force growth.",
             "Re-evaluate long-term workforce planning frameworks in light of demographic shifts.",
+            "Develop incentive structures to maintain sustainable population growth rates.",
         ],
         "improving_ar": [
             "توافق إمدادات التعليم والتدريب المهني مع توقعات النمو الديموغرافي.",
             "توظيف فئات الشباب المتنامية ميزةً تنافسية من خلال تنمية المهارات الموجّهة.",
             "الاستثمار في أنظمة بيانات سوق العمل لرصد ديناميكيات العرض والطلب الديموغرافية.",
+            "بناء أطر تخطيط استشرافي للقوى العاملة متكاملة مع أهداف الرؤية الوطنية.",
         ],
         "worsening_ar": [
             "مراجعة سياسات الهجرة والإقامة المؤثرة في تركيبة القوة العاملة النشطة.",
             "الاستثمار في تقنيات تعزيز الإنتاجية لتعويض تباطؤ نمو القوة العاملة.",
             "إعادة تقييم أُطر التخطيط للقوى العاملة على المدى البعيد في ضوء التحولات الديموغرافية.",
+            "تطوير هياكل حوافز للحفاظ على معدلات نمو سكانية مستدامة.",
         ],
     },
-    # ── World Bank indicator: Internet Usage ──────────────────────────────────
     "internet_usage": {
         "improving": [
             "Leverage rising connectivity to scale digital skilling platforms for youth.",
             "Invest in cloud and AI infrastructure to capture value from growing digital participation.",
             "Support digital entrepreneurship programmes targeting online talent pools.",
-            "Use broadband penetration gains to deliver remote employment opportunities in rural areas.",
+            "Use broadband penetration gains to deliver remote employment opportunities.",
         ],
         "worsening": [
             "Prioritise national broadband expansion plans, particularly for underserved regions.",
@@ -284,7 +355,7 @@ _INDICATOR_POLICY = {
             "الاستفادة من الاتصال المتنامي لتوسيع منصات التأهيل الرقمي للشباب.",
             "الاستثمار في البنية التحتية السحابية والذكاء الاصطناعي لاستثمار المشاركة الرقمية المتنامية.",
             "دعم برامج ريادة الأعمال الرقمية الموجّهة نحو مجمعات المواهب الإلكترونية.",
-            "توظيف مكاسب انتشار النطاق العريض لتوفير فرص العمل عن بُعد في المناطق النائية.",
+            "توظيف مكاسب انتشار النطاق العريض لتوفير فرص العمل عن بُعد.",
         ],
         "worsening_ar": [
             "إيلاء الأولوية لخطط توسيع النطاق العريض الوطني، لا سيما في المناطق المحرومة.",
@@ -294,6 +365,358 @@ _INDICATOR_POLICY = {
         ],
     },
 }
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Strategic Risk Engine
+# ──────────────────────────────────────────────────────────────────────────────
+
+def compute_risk_profile(
+    indicator: str,
+    latest: float,
+    slope: float,
+    improving: bool,
+    uncertainty_pct: float,
+    historical: pd.Series,
+) -> RiskProfile:
+    """
+    Classify the current indicator situation into a dynamic risk label.
+    Uses trend slope, recent volatility, target range adherence, and
+    post-deterioration recovery patterns to assign a contextual label.
+    """
+    from src.gcc_data import INDICATORS
+    lib = INDICATORS[indicator]["lower_is_better"]
+    target_min, target_max = INDICATORS[indicator].get("target_range", (0, 100))
+
+    # Volatility from recent percentage changes
+    volatility = 0.0
+    if len(historical) >= 4:
+        pct_changes = historical.pct_change().dropna()
+        volatility = float(pct_changes.std())
+
+    # Recovery detection: early half worsening, late half improving
+    is_recovery = False
+    if len(historical) >= 6:
+        vals = historical.values
+        mid = len(vals) // 2
+        early_slope = float(np.polyfit(np.arange(mid), vals[:mid], 1)[0])
+        late_slope = float(np.polyfit(np.arange(len(vals) - mid), vals[mid:], 1)[0])
+        early_worsening = (early_slope > 0 and lib) or (early_slope < 0 and not lib)
+        late_improving = (late_slope < 0 and lib) or (late_slope > 0 and not lib)
+        is_recovery = early_worsening and late_improving and improving
+
+    in_target = target_min <= latest <= target_max
+
+    # ── Indicator-specific overrides ─────────────────────────────────────────
+    if indicator == "inflation":
+        if latest > 5.0:
+            return RiskProfile(
+                label="Inflationary Pressure",
+                label_ar="ضغط تضخمي",
+                severity="high",
+                confidence="High",
+                badge_color="inflationary",
+                rationale=(
+                    f"Inflation at {latest:.1f}% substantially exceeds the 3% policy threshold, "
+                    "posing direct risk to household purchasing power and real wage growth for youth workers."
+                ),
+                rationale_ar=(
+                    f"يتجاوز معدل التضخم عند {latest:.1f}% الحد السياسي البالغ 3% بشكل ملحوظ، "
+                    "مما يُشكّل خطرًا مباشرًا على القدرة الشرائية للأسر ونمو الأجور الحقيقية للعمال الشباب."
+                ),
+            )
+        if latest > 3.0:
+            return RiskProfile(
+                label="Moderate Risk",
+                label_ar="مخاطر معتدلة",
+                severity="medium",
+                confidence="High",
+                badge_color="moderate-risk",
+                rationale=f"Inflation at {latest:.1f}% is slightly above the 3% target. Continued monitoring is warranted.",
+                rationale_ar=f"التضخم عند {latest:.1f}% يتجاوز الهدف البالغ 3% قليلاً. المراقبة المستمرة ضرورية.",
+            )
+
+    if indicator == "youth_unemployment_rate":
+        if latest > 25.0:
+            return RiskProfile(
+                label="High Risk",
+                label_ar="مخاطر عالية",
+                severity="critical",
+                confidence="High",
+                badge_color="high-risk",
+                rationale=(
+                    f"Youth unemployment at {latest:.1f}% is critically elevated. "
+                    "Structural intervention is required to prevent long-term labour market scarring effects."
+                ),
+                rationale_ar=(
+                    f"بطالة الشباب عند {latest:.1f}% في مستوى حرج. "
+                    "التدخل الهيكلي ضروري لمنع الآثار الندبية طويلة الأمد على سوق العمل."
+                ),
+            )
+        if latest > 15.0 and not improving:
+            return RiskProfile(
+                label="Labor Market Volatility",
+                label_ar="تقلبات سوق العمل",
+                severity="high",
+                confidence="Moderate",
+                badge_color="labor-volatility",
+                rationale=(
+                    f"Youth unemployment at {latest:.1f}% with a worsening trend signals labour market instability. "
+                    "Targeted policy response is required to prevent structural deterioration."
+                ),
+                rationale_ar=(
+                    f"بطالة الشباب عند {latest:.1f}% مع اتجاه متراجع تُشير إلى عدم استقرار سوق العمل. "
+                    "استجابة سياسية موجّهة مطلوبة لمنع التدهور الهيكلي."
+                ),
+            )
+
+    # ── General pattern logic ─────────────────────────────────────────────────
+    if is_recovery:
+        return RiskProfile(
+            label="Recovery Phase",
+            label_ar="مرحلة التعافي",
+            severity="medium",
+            confidence="Moderate",
+            badge_color="recovery",
+            rationale=(
+                "The indicator shows a recovery trajectory after a prior deterioration phase. "
+                "Sustaining current policy direction and monitoring leading indicators is critical."
+            ),
+            rationale_ar=(
+                "يُظهر المؤشر مسار تعافٍ بعد مرحلة تراجع سابقة. "
+                "الحفاظ على التوجه السياسي الحالي ومراقبة المؤشرات الرائدة أمر محوري."
+            ),
+        )
+
+    if improving and in_target:
+        return RiskProfile(
+            label="Stable",
+            label_ar="مستقر",
+            severity="low",
+            confidence="High",
+            badge_color="stable",
+            rationale=(
+                f"The indicator sits within the target range ({target_min}–{target_max}%) "
+                "and is following an improving trajectory. The near-term risk outlook is low."
+            ),
+            rationale_ar=(
+                f"يقع المؤشر ضمن النطاق المستهدف ({target_min}–{target_max}%) "
+                "ويتبع مسارًا تحسّنيًا. مخاطر التوقعات على المدى القريب منخفضة."
+            ),
+        )
+
+    if not lib and improving:
+        return RiskProfile(
+            label="Growth Opportunity",
+            label_ar="فرصة نمو",
+            severity="low",
+            confidence="High",
+            badge_color="growth-opportunity",
+            rationale=(
+                "A strong upward trajectory presents a growth opportunity. "
+                "Sustained investment and policy alignment can amplify these gains further."
+            ),
+            rationale_ar=(
+                "المسار التصاعدي القوي يُمثّل فرصة نمو واعدة. "
+                "الاستثمار المستدام ومواءمة السياسات يُمكنهما تعزيز هذه المكاسب أكثر."
+            ),
+        )
+
+    if not improving and abs(slope) > 0.3:
+        return RiskProfile(
+            label="Structural Pressure",
+            label_ar="ضغط هيكلي",
+            severity="high",
+            confidence="High",
+            badge_color="structural-pressure",
+            rationale=(
+                f"A persistent worsening trend (annualised slope: {slope:+.2f}pp) "
+                "indicates deep-rooted structural pressure that short-term interventions alone cannot resolve."
+            ),
+            rationale_ar=(
+                f"الاتجاه المتدهور المستمر (الميل السنوي: {slope:+.2f} نقطة) "
+                "يُشير إلى ضغط هيكلي متجذّر لا يمكن لتدخلات قصيرة الأمد وحدها أن تحلّه."
+            ),
+        )
+
+    if not improving:
+        return RiskProfile(
+            label="Moderate Risk",
+            label_ar="مخاطر معتدلة",
+            severity="medium",
+            confidence="Moderate",
+            badge_color="moderate-risk",
+            rationale=(
+                "The indicator is on a worsening trend. "
+                "Without corrective policy action, further deterioration is expected."
+            ),
+            rationale_ar=(
+                "المؤشر في اتجاه متراجع. "
+                "دون تدخل سياسي تصحيحي، يُتوقع استمرار التدهور."
+            ),
+        )
+
+    # Improving but outside target or elevated uncertainty
+    if uncertainty_pct > 15:
+        return RiskProfile(
+            label="Moderate Risk",
+            label_ar="مخاطر معتدلة",
+            severity="medium",
+            confidence="Low",
+            badge_color="moderate-risk",
+            rationale=(
+                "Improving trend but elevated forecast uncertainty warrants cautious optimism. "
+                "Scenario stress-testing is recommended before committing to policy design."
+            ),
+            rationale_ar=(
+                "الاتجاه إيجابي لكن ارتفاع عدم اليقين في التوقعات يستدعي تفاؤلاً حذرًا. "
+                "يُنصح باختبارات الإجهاد للسيناريوهات قبل الالتزام بتصميم السياسات."
+            ),
+        )
+
+    return RiskProfile(
+        label="Stable",
+        label_ar="مستقر",
+        severity="low",
+        confidence="High",
+        badge_color="stable",
+        rationale="Trajectory is stable with manageable uncertainty levels. Continued monitoring is advised.",
+        rationale_ar="المسار مستقر مع مستويات مقبولة من عدم اليقين. يُنصح بالمتابعة الدورية.",
+    )
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Strategic Alert Generator
+# ──────────────────────────────────────────────────────────────────────────────
+
+def generate_strategic_alerts(
+    country: str,
+    indicator: str,
+    latest: float,
+    slope: float,
+    improving: bool,
+    risk_profile: RiskProfile,
+    gcc_avg_latest: Optional[float] = None,
+    yoy_change: float = 0.0,
+) -> List[StrategicAlert]:
+    """Generate a prioritised list of strategic alerts for the indicator/country."""
+    from src.gcc_data import INDICATORS, COUNTRIES
+    lib = INDICATORS[indicator]["lower_is_better"]
+    ind_name = INDICATORS[indicator]["name"]
+    ind_name_ar = INDICATORS[indicator].get("name_ar", ind_name)
+    target_min, target_max = INDICATORS[indicator].get("target_range", (0, 100))
+    flag = COUNTRIES[country]["flag"]
+
+    alerts: List[StrategicAlert] = []
+
+    # Alert 1: Critical risk level
+    if risk_profile.severity == "critical":
+        alerts.append(StrategicAlert(
+            title=f"CRITICAL — {ind_name} Requires Immediate Policy Action",
+            title_ar=f"حرج — {ind_name_ar} يستوجب تدخلاً سياسيًا فوريًا",
+            message=(
+                f"{flag} {country}'s {ind_name} stands at {latest:.1f}%, "
+                f"classified as critical risk. {risk_profile.rationale}"
+            ),
+            message_ar=(
+                f"{ind_name_ar} في {country} عند {latest:.1f}%، "
+                f"مُصنَّف كخطر حرج. {risk_profile.rationale_ar}"
+            ),
+            level="critical",
+            indicator=indicator,
+            country=country,
+        ))
+
+    # Alert 2: Significant YoY movement
+    abs_yoy = abs(yoy_change)
+    if abs_yoy > 1.5:
+        worsening_yoy = (yoy_change > 0 and lib) or (yoy_change < 0 and not lib)
+        if worsening_yoy:
+            direction_en = "accelerated deterioration"
+            direction_ar = "تسارع في التدهور"
+            alert_level = "warning"
+        else:
+            direction_en = "significant improvement"
+            direction_ar = "تحسّن ملحوظ"
+            alert_level = "success"
+        alerts.append(StrategicAlert(
+            title=f"YoY Signal: {direction_en.title()} ({abs_yoy:.1f}pp shift)",
+            title_ar=f"إشارة سنوية: {direction_ar} ({abs_yoy:.1f} نقطة مئوية)",
+            message=(
+                f"The {ind_name} in {country} changed by {yoy_change:+.1f}pp year-on-year, "
+                f"signalling {direction_en} that warrants close monitoring."
+            ),
+            message_ar=(
+                f"تغيّر {ind_name_ar} في {country} بمقدار {yoy_change:+.1f} نقطة مئوية سنويًا، "
+                f"مما يُشير إلى {direction_ar} يستوجب المتابعة الدقيقة."
+            ),
+            level=alert_level,
+            indicator=indicator,
+            country=country,
+        ))
+
+    # Alert 3: GCC peer divergence
+    if gcc_avg_latest is not None:
+        vs_gcc = latest - gcc_avg_latest
+        worse_than_gcc = (vs_gcc > 0 and lib) or (vs_gcc < 0 and not lib)
+        if abs(vs_gcc) > 2.5:
+            if worse_than_gcc:
+                alerts.append(StrategicAlert(
+                    title=f"GCC Divergence — Underperforming Regional Peers by {abs(vs_gcc):.1f}pp",
+                    title_ar=f"تباين خليجي — أداء دون النظراء الإقليميين بفارق {abs(vs_gcc):.1f} نقطة",
+                    message=(
+                        f"{country}'s {ind_name} ({latest:.1f}%) significantly underperforms "
+                        f"the GCC average ({gcc_avg_latest:.1f}%). "
+                        "Regional benchmarking reveals a structural gap. Peer-learning from top performers is recommended."
+                    ),
+                    message_ar=(
+                        f"أداء {country} في {ind_name_ar} ({latest:.1f}%) يتخلف عن المتوسط الخليجي "
+                        f"({gcc_avg_latest:.1f}%) بشكل ملحوظ. "
+                        "التعلم من التجارب الرائدة في المنطقة موصى به."
+                    ),
+                    level="warning",
+                    indicator=indicator,
+                    country=country,
+                ))
+            else:
+                alerts.append(StrategicAlert(
+                    title=f"GCC Regional Leader — Outperforming Average by {abs(vs_gcc):.1f}pp",
+                    title_ar=f"ريادة خليجية — تفوّق على المتوسط بفارق {abs(vs_gcc):.1f} نقطة",
+                    message=(
+                        f"{country}'s {ind_name} ({latest:.1f}%) outperforms the GCC average "
+                        f"({gcc_avg_latest:.1f}%). "
+                        "This leadership creates an opportunity to share policy models regionally and attract investment."
+                    ),
+                    message_ar=(
+                        f"أداء {country} في {ind_name_ar} ({latest:.1f}%) يتفوق على المتوسط الخليجي "
+                        f"({gcc_avg_latest:.1f}%). "
+                        "هذه الريادة تُوفّر فرصة لمشاركة النماذج السياسية إقليميًا واستقطاب الاستثمارات."
+                    ),
+                    level="success",
+                    indicator=indicator,
+                    country=country,
+                ))
+
+    # Alert 4: Outside target range
+    outside_target = (latest > target_max and lib) or (latest < target_min and not lib)
+    if outside_target:
+        alerts.append(StrategicAlert(
+            title=f"Target Range Alert — Outside Optimal Band ({target_min}–{target_max}%)",
+            title_ar=f"تنبيه النطاق المستهدف — خارج النطاق الأمثل ({target_min}–{target_max}%)",
+            message=(
+                f"{country}'s {ind_name} ({latest:.1f}%) is outside the optimal target range "
+                f"of {target_min}–{target_max}%. Policy measures are needed to converge toward target."
+            ),
+            message_ar=(
+                f"{ind_name_ar} في {country} ({latest:.1f}%) خارج النطاق الأمثل "
+                f"({target_min}–{target_max}%). تدابير سياسية مطلوبة للتقريب من الهدف."
+            ),
+            level="warning",
+            indicator=indicator,
+            country=country,
+        ))
+
+    return alerts
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -335,7 +758,7 @@ def generate_intelligence_report(
     horizon = len(f_vals)
 
     gcc_avg_latest = float(gcc_average.iloc[-1]) if gcc_average is not None else None
-    vs_gcc = (latest - gcc_avg_latest) if gcc_avg_latest else None
+    vs_gcc = (latest - gcc_avg_latest) if gcc_avg_latest is not None else None
 
     trend_en, trend_ar, improving = _slope_label(slope, lib)
     urgency = _urgency(latest, slope, lib)
@@ -346,7 +769,7 @@ def generate_intelligence_report(
     recs_en = pol.get(pol_key, pol.get("improving", []))[:4]
     recs_ar = pol.get(f"{pol_key}_ar", pol.get("improving_ar", []))[:4]
 
-    # ── Forecast confidence interpretation ───────────────────────────────────
+    # ── Forecast confidence ───────────────────────────────────────────────────
     avg_width = float((upper - lower).mean())
     avg_fc = float(forecast.mean())
     uncertainty_pct = avg_width / (abs(avg_fc) + 1e-6) * 100
@@ -361,25 +784,94 @@ def generate_intelligence_report(
         confidence_phrase = "with elevated uncertainty — wider prediction intervals advised"
         confidence_ar = "مع ارتفاع ملحوظ في درجة عدم اليقين — يُنصح بمراعاة فترات التنبؤ الأوسع"
 
-    # ── English narrative ─────────────────────────────────────────────────────
-    direction_phrase = _direction_word(fc_change, lib)
+    smape_risk = "low" if model_smape < 5 else ("moderate" if model_smape < 12 else "elevated")
 
-    trajectory_word = "positive" if improving else "concerning"
-    exec_summary = (
-        f"{flag} {country}'s {ind_name} currently stands at {_fmt(latest, unit)}, "
-        f"reflecting a {trajectory_word} trajectory "
-        f"over the past decade. AI-driven forecasting — using the {model_name} model "
-        f"(sMAPE: {model_smape:.1f}%) — projects this indicator to {direction_phrase} "
-        f"over the next {horizon} period(s) {confidence_phrase}. "
-        f"{'This improvement aligns with ' + ctx.get('vision','the national vision') + ' reform objectives.' if improving else 'Targeted policy intervention is advised to reverse this trajectory.'}"
+    # ── Risk profile & alerts ─────────────────────────────────────────────────
+    risk_profile = compute_risk_profile(
+        indicator=indicator,
+        latest=latest,
+        slope=slope,
+        improving=improving,
+        uncertainty_pct=uncertainty_pct,
+        historical=historical,
     )
 
-    gcc_insight = ""
+    strategic_alerts = generate_strategic_alerts(
+        country=country,
+        indicator=indicator,
+        latest=latest,
+        slope=slope,
+        improving=improving,
+        risk_profile=risk_profile,
+        gcc_avg_latest=gcc_avg_latest,
+        yoy_change=yoy,
+    )
+
+    # ── English narrative ─────────────────────────────────────────────────────
+    direction_phrase = _direction_word(fc_change, lib)
+    trajectory_word = "positive" if improving else "concerning"
+    vision_name = ctx.get("vision", "the national vision")
+    country_strength = ctx.get("strength", "ongoing national reforms")
+    country_challenge = ctx.get("challenge", "structural challenges")
+
+    exec_summary = (
+        f"{flag} {country}'s {ind_name} currently stands at {_fmt(latest, unit)}, "
+        f"reflecting a {trajectory_word} trajectory over the observed period. "
+        f"The {model_name} model (sMAPE: {model_smape:.1f}%) — selected via expanding-window "
+        f"cross-validation — projects this indicator to {direction_phrase} "
+        f"over the next {horizon} period(s) {confidence_phrase}. "
+        f"Risk profile: {risk_profile.label}. "
+        f"{'This improvement is broadly consistent with ' + vision_name + ' reform priorities.' if improving else 'Targeted policy intervention is recommended to arrest this trajectory.'}"
+    )
+
+    # GCC comparison section
     if vs_gcc is not None:
         better = (vs_gcc < 0 if lib else vs_gcc > 0)
-        gcc_insight = (
-            f"{country} performs {'better' if better else 'worse'} than the GCC average "
-            f"({_fmt(gcc_avg_latest, unit)}) by {abs(vs_gcc):.1f} percentage points."
+        rel_word = "better" if better else "worse"
+        gcc_comparison = (
+            f"{country} performs {rel_word} than the GCC regional average "
+            f"({_fmt(gcc_avg_latest, unit)}) by {abs(vs_gcc):.1f} percentage points, "
+            f"ranking {'among the top performers' if better and abs(vs_gcc) > 3 else 'above regional average' if better else 'below regional average'} "
+            f"in the GCC. "
+        )
+        if better and abs(vs_gcc) > 3:
+            gcc_comparison += (
+                f"This performance lead reflects {country_strength}. "
+                "Maintaining this position requires sustained policy investment and reform continuity."
+            )
+        elif not better and abs(vs_gcc) > 3:
+            gcc_comparison += (
+                f"The gap against regional peers is driven primarily by {country_challenge}. "
+                "Peer-learning from GCC leaders and adapting best-practice policy frameworks "
+                "offers the most direct path to convergence."
+            )
+        else:
+            gcc_comparison += (
+                "The performance is broadly in line with regional peers. "
+                "Incremental policy improvements offer scope for further differentiation."
+            )
+    else:
+        gcc_comparison = (
+            f"GCC comparative data not available for this configuration. "
+            "Regional benchmarking is recommended as a supplementary analysis."
+        )
+
+    # Causal interpretation section
+    causal_drivers = ctx.get("causal_drivers_en", [])
+    if causal_drivers:
+        causal_interpretation = (
+            f"The observed trajectory in {country}'s {ind_name} is driven by a combination "
+            f"of structural and cyclical factors. Key causal mechanisms include: "
+            + " ".join(f"({i+1}) {d}" for i, d in enumerate(causal_drivers[:3]))
+            + f" Statistical model diagnostics (sMAPE: {model_smape:.1f}%, risk: {smape_risk}) "
+            f"suggest {'reliable signal with manageable uncertainty' if smape_risk == 'low' else 'moderate signal reliability — scenario analysis is advisable' if smape_risk == 'moderate' else 'elevated model uncertainty — results should be interpreted with caution'}."
+        )
+    else:
+        causal_interpretation = (
+            f"The trend in {country}'s {ind_name} reflects the interplay of national structural reforms, "
+            f"regional economic conditions, and demographic dynamics. "
+            f"The {model_name} model captures the primary autocorrelation patterns in the data. "
+            f"Model reliability is {smape_risk} (sMAPE: {model_smape:.1f}%)."
         )
 
     yoy_dir = "declined" if yoy < 0 else "rose"
@@ -387,42 +879,47 @@ def generate_intelligence_report(
     fc_dir = "improvement" if (fc_change < 0 and lib) or (fc_change > 0 and not lib) else "deterioration"
     key_insights = [
         f"The {ind_name} {yoy_dir} by {abs(yoy):.1f}pp year-on-year — a {yoy_signal} signal.",
-        f"Forecasting model ({model_name}) projects a {abs(fc_change):.1f}pp {fc_dir} "
+        f"The {model_name} model projects a {abs(fc_change):.1f}pp {fc_dir}, "
         f"reaching {_fmt(fc_end, unit)} by end of the forecast horizon.",
     ]
-    if gcc_insight:
-        key_insights.append(gcc_insight)
+    if vs_gcc is not None:
+        better = (vs_gcc < 0 if lib else vs_gcc > 0)
+        key_insights.append(
+            f"{country} performs {'better' if better else 'worse'} than the GCC average "
+            f"({_fmt(gcc_avg_latest, unit)}) by {abs(vs_gcc):.1f}pp."
+        )
     key_insights.append(
-        f"The key structural driver remains {ctx.get('strength', 'ongoing national reforms')}."
+        f"Primary structural driver: {country_strength}."
     )
 
     risks = [
-        f"Global economic headwinds (inflationary pressure, tightening financial conditions) "
+        f"Global economic headwinds (inflationary pressure, financial tightening) "
         f"may slow projected progress, widening forecast uncertainty intervals.",
-        f"Structural challenge: {ctx.get('challenge', 'skills mismatch')} could moderate "
-        f"the pace of improvement even under favourable macro conditions.",
-        f"Model forecast error (sMAPE {model_smape:.1f}%) suggests "
-        f"{'low' if model_smape < 5 else 'moderate' if model_smape < 12 else 'elevated'} "
-        f"statistical risk — sensitivity analysis via scenario simulation is recommended.",
+        f"Structural challenge: {country_challenge} could moderate improvement pace "
+        f"even under favourable macro conditions.",
+        f"Model forecast error (sMAPE {model_smape:.1f}%) indicates {smape_risk} statistical risk — "
+        f"scenario sensitivity analysis is recommended.",
     ]
     if not improving:
-        risks.insert(0, f"Trend risk: the {ind_name} has been on a worsening trajectory; "
-                    f"without intervention, this is expected to persist through the forecast horizon.")
+        risks.insert(0,
+            f"Trend risk: the {ind_name} has been on a worsening trajectory; "
+            f"without intervention, this is expected to persist through the forecast horizon."
+        )
 
     factors = [
-        f"National economic strategy ({ctx.get('vision', 'national vision')}) structural reforms.",
+        f"National economic strategy ({vision_name}) structural reforms.",
         "Digital economy and technology sector growth absorbing graduate talent.",
-        "Global oil market conditions influencing fiscal space for employment programmes.",
-        "Demographic dynamics — youth cohort size relative to labour market capacity.",
+        "Global energy market conditions influencing fiscal space for employment programmes.",
+        "Demographic dynamics — youth cohort size relative to labour market absorption capacity.",
         "Regional FDI inflows and private-sector investment confidence levels.",
     ]
 
     outlook = (
         f"Based on the {model_name} model, the {horizon}-period outlook for {country}'s {ind_name} is "
-        f"{'cautiously optimistic' if improving else 'challenging'}. "
+        f"{'cautiously optimistic' if improving else 'challenging and requires policy attention'}. "
         f"The indicator is forecast to reach {_fmt(fc_end, unit)} "
         f"(80% prediction interval: {_fmt(float(lower.iloc[-1]), unit)}–{_fmt(float(upper.iloc[-1]), unit)}). "
-        f"{'If reform momentum is sustained, further structural improvement is achievable.' if improving else 'Without targeted policy action, the trend is likely to persist — immediate intervention is advisable.'}"
+        f"{'If reform momentum is sustained, further structural improvement is achievable beyond the forecast horizon.' if improving else 'Without targeted policy action, the deteriorating trend is likely to persist — immediate evidence-based intervention is advisable.'}"
     )
 
     # ── Arabic narrative ──────────────────────────────────────────────────────
@@ -432,14 +929,68 @@ def generate_intelligence_report(
     challenge_ar = ctx.get("challenge_ar", "التحديات الهيكلية")
     dir_ar = _direction_word_ar(fc_change, lib)
 
+    ar_trajectory = "إيجابيًا" if improving else "يستوجب الاهتمام"
+    ar_reform_note = (
+        ("يتوافق ذلك مع أهداف إصلاحات " + vision_ar + ".")
+        if improving
+        else "يُنصح بالتدخل السياسي الهادف لعكس هذا المسار."
+    )
+
     ar_exec = (
         f"يبلغ {ind_name_ar} في {country} حاليًا {_fmt(latest, unit)}، "
-        f"مما يعكس مسارًا {'إيجابيًا' if improving else 'يستوجب الاهتمام'} خلال العقد الماضي. "
-        f"تشير توقعات الذكاء الاصطناعي — باستخدام نموذج {model_name} (sMAPE: {model_smape:.1f}%) — "
-        f"إلى أن هذا المؤشر سيتجه نحو أن {dir_ar} خلال الفترة القادمة ({horizon} فترة/فترات) "
+        f"مما يعكس مسارًا {ar_trajectory} خلال الفترة المرصودة. "
+        f"تشير توقعات نموذج {model_name} (sMAPE: {model_smape:.1f}%) — "
+        f"المُختار عبر التحقق المتقاطع بالنوافذ المتوسعة — "
+        f"إلى أن هذا المؤشر سيتجه نحو أن {dir_ar} خلال {horizon} فترة قادمة "
         f"{confidence_ar}. "
-        f"{'يتوافق ذلك مع أهداف إصلاحات ' + vision_ar + '.' if improving else 'يُنصح بالتدخل السياسي الهادف لعكس هذا المسار.'}"
+        f"تصنيف المخاطر: {risk_profile.label_ar}. "
+        f"{ar_reform_note}"
     )
+
+    # Arabic GCC comparison
+    if vs_gcc is not None:
+        better_ar = (vs_gcc < 0 if lib else vs_gcc > 0)
+        ar_rel = "أفضل" if better_ar else "أضعف"
+        ar_gcc_comparison = (
+            f"يُسجّل {country} أداءً {ar_rel} من المتوسط الإقليمي الخليجي "
+            f"({_fmt(gcc_avg_latest, unit)}) بفارق {abs(vs_gcc):.1f} نقطة مئوية. "
+        )
+        if better_ar and abs(vs_gcc) > 3:
+            ar_gcc_comparison += (
+                f"يعكس هذا التفوق {strength_ar}. "
+                "الحفاظ على هذه المكانة يستلزم استمرار الاستثمار السياسي وديمومة الإصلاح."
+            )
+        elif not better_ar and abs(vs_gcc) > 3:
+            ar_gcc_comparison += (
+                f"يُعزى الفارق عن النظراء الإقليميين أساسًا إلى {challenge_ar}. "
+                "التعلم من التجارب الرائدة في الخليج وتكييف الأطر السياسية المثلى "
+                "يُوفّران أقصر طريق للتقارب."
+            )
+        else:
+            ar_gcc_comparison += (
+                "الأداء يتوافق إجمالاً مع النظراء الإقليميين. "
+                "التحسينات السياسية التدريجية تُتيح مجالاً للتميّز."
+            )
+    else:
+        ar_gcc_comparison = "بيانات المقارنة الخليجية غير متاحة لهذا التكوين. تُنصح بالمعايرة الإقليمية كتحليل تكميلي."
+
+    # Arabic causal interpretation
+    causal_drivers_ar = ctx.get("causal_drivers_ar", [])
+    if causal_drivers_ar:
+        ar_causal = (
+            f"يتشكّل المسار المرصود في {ind_name_ar} لدى {country} من مزيج العوامل الهيكلية والدورية. "
+            "أبرز الآليات السببية: "
+            + " ".join(f"({i+1}) {d}" for i, d in enumerate(causal_drivers_ar[:3]))
+            + f" يُشير تشخيص النموذج الإحصائي (sMAPE: {model_smape:.1f}%) إلى "
+            f"{'إشارة موثوقة مع عدم يقين قابل للإدارة' if smape_risk == 'low' else 'موثوقية إشارة معتدلة — يُنصح بتحليل السيناريوهات' if smape_risk == 'moderate' else 'عدم يقين مرتفع في النموذج — ينبغي تفسير النتائج بحذر'}."
+        )
+    else:
+        ar_causal = (
+            f"يعكس الاتجاه في {ind_name_ar} لدى {country} التفاعل بين الإصلاحات الهيكلية الوطنية "
+            f"والأوضاع الاقتصادية الإقليمية والديناميكيات الديموغرافية. "
+            f"يلتقط نموذج {model_name} الأنماط الرئيسية للارتباط الذاتي في البيانات. "
+            f"موثوقية النموذج: {smape_risk} (sMAPE: {model_smape:.1f}%)."
+        )
 
     fc_dir_ar = "تحسّنًا" if (fc_change < 0 and lib) or (fc_change > 0 and not lib) else "تراجعًا"
     yoy_dir_ar = "انخفض" if yoy < 0 else "ارتفع"
@@ -447,31 +998,34 @@ def generate_intelligence_report(
     ar_insights = [
         f"{ind_name_ar} {yoy_dir_ar} بمقدار {abs(yoy):.1f} نقطة مئوية مقارنةً بالعام السابق — "
         f"وهو مؤشر {yoy_signal_ar}.",
-        f"يتوقع النموذج ({model_name}) {fc_dir_ar} "
-        f"بمقدار {abs(fc_change):.1f} نقطة مئوية ليصل المؤشر إلى {_fmt(fc_end, unit)} نهاية أفق التنبؤ.",
-        f"يظل المحرك الهيكلي الرئيسي هو {strength_ar}.",
+        f"يتوقع نموذج {model_name} {fc_dir_ar} "
+        f"بمقدار {abs(fc_change):.1f} نقطة ليصل المؤشر إلى {_fmt(fc_end, unit)} نهاية أفق التنبؤ.",
+        f"المحرك الهيكلي الرئيسي: {strength_ar}.",
     ]
-    if gcc_insight:
-        better = (vs_gcc < 0 if lib else vs_gcc > 0) if vs_gcc is not None else False
+    if vs_gcc is not None:
+        better_ar2 = (vs_gcc < 0 if lib else vs_gcc > 0)
         ar_insights.append(
-            f"يُسجّل {country} أداءً {'أفضل' if better else 'أضعف'} من المتوسط الخليجي "
+            f"يُسجّل {country} أداءً {'أفضل' if better_ar2 else 'أضعف'} من المتوسط الخليجي "
             f"({_fmt(gcc_avg_latest, unit)}) بفارق {abs(vs_gcc):.1f} نقطة مئوية."
-            if vs_gcc is not None else ""
         )
 
     ar_risks = [
         "تحديات الاقتصاد العالمي (الضغوط التضخمية وتشديد الأوضاع المالية) قد تُبطئ التقدم المتوقع.",
-        f"التحدي الهيكلي المتمثل في {challenge_ar} قد يُخفّف وتيرة التحسّن.",
-        f"يُشير مؤشر دقة النموذج (sMAPE {model_smape:.1f}%) إلى مستوى مخاطرة "
-        f"{'منخفض' if model_smape < 5 else 'معتدل' if model_smape < 12 else 'مرتفع'} — يُنصح بإجراء تحليل السيناريوهات.",
+        f"التحدي الهيكلي المتمثل في {challenge_ar} قد يُخفّف وتيرة التحسّن حتى في ظل ظروف اقتصادية مواتية.",
+        f"دقة النموذج (sMAPE {model_smape:.1f}%) تُشير إلى مستوى مخاطرة "
+        f"{'منخفض' if smape_risk == 'low' else 'معتدل' if smape_risk == 'moderate' else 'مرتفع'} — يُنصح بتحليل السيناريوهات.",
     ]
+    if not improving:
+        ar_risks.insert(0,
+            f"مخاطر الاتجاه: {ind_name_ar} على مسار تراجعي؛ دون تدخل، يُتوقع استمرار ذلك عبر أفق التنبؤ."
+        )
 
     ar_outlook = (
         f"استنادًا إلى نموذج {model_name}، تبدو آفاق {ind_name_ar} في {country} خلال {horizon} فترة قادمة "
         f"{'واعدةً بحذر' if improving else 'تحدّيًا يستوجب المعالجة'}. "
         f"يُتوقع أن يصل المؤشر إلى {_fmt(fc_end, unit)} "
         f"(فترة التنبؤ 80%: {_fmt(float(lower.iloc[-1]), unit)} – {_fmt(float(upper.iloc[-1]), unit)}). "
-        f"{'استدامة زخم الإصلاح كفيلة بتحقيق مزيد من التحسّن الهيكلي.' if improving else 'دون تدخّل سياسي هادف، يُرجَّح استمرار هذا المسار — ويُنصح بالتحرّك الفوري.'}"
+        f"{'استدامة زخم الإصلاح كفيلة بتحقيق تحسّن هيكلي إضافي ما وراء أفق التنبؤ.' if improving else 'دون تدخّل سياسي هادف قائم على الأدلة، يُرجَّح استمرار مسار التدهور — ويُنصح بالتحرّك الفوري.'}"
     )
 
     return IntelligenceReport(
@@ -485,21 +1039,27 @@ def generate_intelligence_report(
         influencing_factors=factors,
         policy_recommendations=recs_en,
         forecast_outlook=outlook,
+        gcc_comparison=gcc_comparison,
+        causal_interpretation=causal_interpretation,
         ar_executive_summary=ar_exec,
         ar_key_insights=ar_insights,
         ar_risk_assessment=ar_risks,
         ar_policy_recommendations=recs_ar,
         ar_forecast_outlook=ar_outlook,
+        ar_gcc_comparison=ar_gcc_comparison,
+        ar_causal_interpretation=ar_causal,
         trend_label=trend_en,
         trend_label_ar=trend_ar,
         urgency_level=urgency,
         model_name=model_name,
         model_smape=model_smape,
+        risk_profile=risk_profile,
+        strategic_alerts=strategic_alerts,
     )
 
 
 def format_arabic_executive_report(report: IntelligenceReport) -> str:
-    """Produce a formatted Arabic executive report string for download."""
+    """Produce a formatted Arabic executive report with structured ministry-grade sections."""
     lines = [
         "╔══════════════════════════════════════════════════════════════════╗",
         "║           منصة الذكاء الإحصائي الخليجي — تقرير تنفيذي           ║",
@@ -509,6 +1069,7 @@ def format_arabic_executive_report(report: IntelligenceReport) -> str:
         f"المؤشر: {report.indicator_name}",
         f"النموذج المُختار: {report.model_name}  |  دقة التنبؤ (sMAPE): {report.model_smape:.1f}%",
         f"الاتجاه العام: {report.trend_label_ar}  |  مستوى الأولوية: {report.urgency_level}",
+        f"تصنيف المخاطر: {report.risk_profile.label_ar}  |  مستوى الثقة: {report.risk_profile.confidence}",
         "",
         "─" * 65,
         "أولاً: الملخص التنفيذي",
@@ -532,7 +1093,17 @@ def format_arabic_executive_report(report: IntelligenceReport) -> str:
     lines += [
         "",
         "─" * 65,
-        "رابعًا: التوصيات الاستراتيجية",
+        "رابعًا: العوامل السببية والمحركات الرئيسية",
+        "─" * 65,
+        report.ar_causal_interpretation,
+        "",
+        "─" * 65,
+        "خامسًا: مقارنة خليجية",
+        "─" * 65,
+        report.ar_gcc_comparison,
+        "",
+        "─" * 65,
+        "سادسًا: التوصيات الاستراتيجية",
         "─" * 65,
     ]
     for rec in report.ar_policy_recommendations:
@@ -540,9 +1111,28 @@ def format_arabic_executive_report(report: IntelligenceReport) -> str:
     lines += [
         "",
         "─" * 65,
-        "خامسًا: النظرة المستقبلية",
+        "سابعًا: النظرة المستقبلية والتوقعات",
         "─" * 65,
         report.ar_forecast_outlook,
+        "",
+        "─" * 65,
+        "ثامنًا: التنبيهات الاستراتيجية",
+        "─" * 65,
+    ]
+    if report.strategic_alerts:
+        for alert in report.strategic_alerts:
+            level_ar = {
+                "critical": "حرج",
+                "warning": "تحذير",
+                "success": "إيجابي",
+                "info": "معلومة",
+            }.get(alert.level, alert.level)
+            lines.append(f"  [{level_ar}] {alert.title_ar}")
+            lines.append(f"         {alert.message_ar}")
+            lines.append("")
+    else:
+        lines.append("  لا توجد تنبيهات استراتيجية نشطة.")
+    lines += [
         "",
         "═" * 65,
     ]
