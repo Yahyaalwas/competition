@@ -710,8 +710,18 @@ def _run_forecast(country: str, indicator: str, freq: str, horizon: int, alpha: 
     """Cache forecast results by (country, indicator, freq, horizon, alpha)."""
     if freq == "M":
         y = gcc_data.get_monthly_series(country, indicator)
+        if y is None or len(y) < 12:
+            raise ValueError(
+                f"Monthly data for {country} — {indicator} is insufficient for forecasting. "
+                "Switch to Annual frequency or choose a different indicator."
+            )
     else:
         y = gcc_data.get_series(country, indicator)
+        if y is None or len(y) < 5:
+            raise ValueError(
+                f"Annual data for {country} — {indicator} has fewer than 5 observations. "
+                "Use 'Refresh Data' to fetch the latest World Bank dataset."
+            )
 
     df = pd.DataFrame({"value": y})
     df = data_module.clean_data(df, "value", "interpolate")
@@ -728,6 +738,32 @@ def _run_forecast(country: str, indicator: str, freq: str, horizon: int, alpha: 
     best_model.fit(y)
     fc, lo, hi = best_model.predict_interval(horizon=horizon, alpha=alpha)
     return y, fc, lo, hi, backtest, best_model
+
+
+@st.cache_data(show_spinner=False)
+def _cached_intelligence_report(
+    country: str, indicator: str,
+    y_json: str, fc_json: str, lo_json: str, hi_json: str,
+    model_name: str, model_smape: float, gcc_avg_json: str,
+):
+    """Cache AI report generation — avoids regenerating on every Streamlit rerun."""
+    y  = pd.read_json(io.StringIO(y_json),  typ="series")
+    fc = pd.read_json(io.StringIO(fc_json), typ="series")
+    lo = pd.read_json(io.StringIO(lo_json), typ="series")
+    hi = pd.read_json(io.StringIO(hi_json), typ="series")
+    gcc_avg = pd.read_json(io.StringIO(gcc_avg_json), typ="series") if gcc_avg_json else None
+    return intel_module.generate_intelligence_report(
+        country=country, indicator=indicator,
+        historical=y, forecast=fc, lower=lo, upper=hi,
+        model_name=model_name, model_smape=model_smape,
+        gcc_average=gcc_avg,
+    )
+
+
+@st.cache_data(show_spinner=False)
+def _cached_trend_stats(indicator: str) -> dict:
+    """Cache trend stats for all countries — recomputed only on data refresh."""
+    return {c: gcc_data.get_trend_stats(c, indicator) for c in gcc_data.COUNTRIES}
 
 
 def _kpi_card(label: str, value: str, delta: str = "", good: bool = True) -> str:
@@ -964,7 +1000,7 @@ def page_gcc_overview():
 
     # ── Compute hero stats (youth unemployment — flagship indicator) ──────────
     _hero_ind = "youth_unemployment_rate"
-    _hero_stats = {c: gcc_data.get_trend_stats(c, _hero_ind) for c in gcc_data.COUNTRIES}
+    _hero_stats = _cached_trend_stats(_hero_ind)
     _gcc_avg_unem = sum(s["latest"] for s in _hero_stats.values()) / len(_hero_stats)
     _best_country = min(_hero_stats, key=lambda c: _hero_stats[c]["latest"])
     _worst_country = max(_hero_stats, key=lambda c: _hero_stats[c]["latest"])
@@ -1049,7 +1085,7 @@ def page_gcc_overview():
 
     # ── KPI cards ────────────────────────────────────────────────────────────
     _section("Latest Values (2024)")
-    stats = {c: gcc_data.get_trend_stats(c, ind) for c in gcc_data.COUNTRIES}
+    stats = _cached_trend_stats(ind)
     cols = st.columns(6)
     for i, (country, info) in enumerate(gcc_data.COUNTRIES.items()):
         s = stats[country]
@@ -1612,12 +1648,14 @@ def page_ai_insights():
     gcc_avg = gcc_data.get_gcc_average(ind)
 
     with st.spinner("Generating AI intelligence report…"):
-        report = intel_module.generate_intelligence_report(
+        # Serialize series to JSON strings so @st.cache_data can hash them
+        report = _cached_intelligence_report(
             country=country, indicator=ind,
-            historical=y, forecast=fc, lower=lo, upper=hi,
+            y_json=y.to_json(), fc_json=fc.to_json(),
+            lo_json=lo.to_json(), hi_json=hi.to_json(),
             model_name=backtest.best_model_name,
             model_smape=backtest.best_model_smape,
-            gcc_average=gcc_avg,
+            gcc_avg_json=gcc_avg.to_json() if gcc_avg is not None else "",
         )
 
     # ── Strategic Alerts strip ────────────────────────────────────────────────
