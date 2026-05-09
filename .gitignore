@@ -1,5 +1,7 @@
 *.pyc
 __pycache__/
 
-# Generated binary artifacts (regenerate with: python scripts/generate_presentation.py)
+# Generated binary artifacts (regenerate with scripts/generate_presentation.py + generate_report_pdf.py)
 presentation/*.pptx
+presentation/*.docx
+presentation/*.pdf
