@@ -1,2 +1,5 @@
 *.pyc
 __pycache__/
+
+# Generated binary artifacts (regenerate with: python scripts/generate_presentation.py)
+presentation/*.pptx
