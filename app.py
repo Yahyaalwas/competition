@@ -1161,7 +1161,7 @@ def page_gcc_overview():
             "Latest (%)": f"{s['latest']:.1f}",
             "YoY Change": f"{'↓' if s['yoy_change'] < 0 else '↑'} {abs(s['yoy_change']):.1f}pp",
             "5-Yr CAGR": f"{s['cagr_5y']:+.1f}%",
-            "vs GCC Avg": f"{s['latest'] - s['gcc_avg_2024']:+.1f}pp",
+            "vs GCC Avg": f"{s['latest'] - s['gcc_avg_latest']:+.1f}pp",
             "Trend": trend_en,
             "Rank": s["rank_2024"],
         })
@@ -1273,9 +1273,9 @@ def page_country_explorer():
         f"{arrow} {abs(s['yoy_change']):.1f}pp YoY", good_yoy,
     ), unsafe_allow_html=True)
     k2.markdown(_kpi_card(
-        "GCC Average (2024)", f"{s['gcc_avg_2024']:.1f}%",
-        f"vs avg: {s['latest'] - s['gcc_avg_2024']:+.1f}pp",
-        (s["latest"] < s["gcc_avg_2024"]) if lib else (s["latest"] > s["gcc_avg_2024"]),
+        "GCC Average (2024)", f"{s['gcc_avg_latest']:.1f}%",
+        f"vs avg: {s['latest'] - s['gcc_avg_latest']:+.1f}pp",
+        (s["latest"] < s["gcc_avg_latest"]) if lib else (s["latest"] > s["gcc_avg_latest"]),
     ), unsafe_allow_html=True)
     k3.markdown(_kpi_card(
         "5-Year CAGR", f"{s['cagr_5y']:+.1f}%",
@@ -1374,7 +1374,7 @@ def page_country_explorer():
         slope=s["slope"],
         improving=improving_c,
         risk_profile=rp,
-        gcc_avg_latest=s.get("gcc_avg_2024"),
+        gcc_avg_latest=s.get("gcc_avg_latest"),
         yoy_change=s["yoy_change"],
     )
 
@@ -2590,7 +2590,7 @@ def _render_ai_transparency_tab(
                 "SARIMAX (auto-order), LightGBM (gradient boosting)<br>"
                 "<strong>Selection Criterion:</strong> Lowest sMAPE on holdout folds<br>"
                 "<strong>Prediction Intervals:</strong> Computed from model residual standard deviation, "
-                f"adjusted to the selected confidence level ({int(confidence * 100) if confidence else 80}%)<br>"
+                f"adjusted to the selected confidence level ({conf_label or '80%'})<br>"
                 "<strong>Elasticity Scenarios:</strong> Applied as linear ramps over the forecast horizon.",
                 "#1A7A4A",
             ),
