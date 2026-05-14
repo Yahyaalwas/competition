@@ -672,6 +672,17 @@ with st.sidebar:
         unsafe_allow_html=True,
     )
 
+# ── RTL CSS (injected when Arabic is active) ─────────────────────────────────
+_lang_global = st.session_state.get("lang", "EN")
+if is_ar(_lang_global):
+    st.markdown("""
+    <style>
+    .main .block-container { direction: rtl; }
+    .stMarkdown, .stDataFrame, .stText { direction: rtl; text-align: right; }
+    h1, h2, h3, p, div { direction: rtl; }
+    </style>
+    """, unsafe_allow_html=True)
+
 # ──────────────────────────────────────────────────────────────────────────────
 # Helpers
 # ──────────────────────────────────────────────────────────────────────────────
@@ -998,6 +1009,7 @@ def _model_quality_panel(quality: dict, smape: float) -> str:
 # ──────────────────────────────────────────────────────────────────────────────
 
 def page_gcc_overview():
+    _lang = st.session_state.get("lang", "EN")
     from src.wb_data import get_metadata, is_cache_available
     wb_meta = get_metadata()
     src_label  = wb_meta.get("source", "World Bank Open Data")
@@ -1060,7 +1072,7 @@ def page_gcc_overview():
         <div class="hero-eyebrow">GCC STRATEGIC INTELLIGENCE PLATFORM</div>
         <h1 class="hero-title">🌍 GCC Youth Employment Intelligence Hub</h1>
         <p class="hero-subtitle">
-            AI-powered statistical intelligence for Gulf policy planning and youth labour market strategy
+            {T('overview_subtitle', _lang)}
         </p>
         <p class="hero-mission">
             Six GCC nations · Five World Bank indicators · 2010–2024 · {src_label} · Updated: {updated_at}
@@ -1081,19 +1093,19 @@ def page_gcc_overview():
         f'to help policymakers answer: <em>Where are we? Where are we heading? What should we do?</em>'
         f'</div>'
         f'<div class="impact-stat-row">'
-        f'<div class="impact-stat"><div class="impact-stat-num">6</div><div class="impact-stat-lbl">GCC Nations</div></div>'
-        f'<div class="impact-stat"><div class="impact-stat-num">5</div><div class="impact-stat-lbl">WB Indicators</div></div>'
-        f'<div class="impact-stat"><div class="impact-stat-num">14+</div><div class="impact-stat-lbl">Years of Data</div></div>'
-        f'<div class="impact-stat"><div class="impact-stat-num">6</div><div class="impact-stat-lbl">AI Models</div></div>'
-        f'<div class="impact-stat"><div class="impact-stat-num">8</div><div class="impact-stat-lbl">Scenarios</div></div>'
-        f'<div class="impact-stat"><div class="impact-stat-num">2</div><div class="impact-stat-lbl">Languages</div></div>'
+        f'<div class="impact-stat"><div class="impact-stat-num">6</div><div class="impact-stat-lbl">{T("stat_nations", _lang)}</div></div>'
+        f'<div class="impact-stat"><div class="impact-stat-num">5</div><div class="impact-stat-lbl">{T("stat_indicators", _lang)}</div></div>'
+        f'<div class="impact-stat"><div class="impact-stat-num">14+</div><div class="impact-stat-lbl">{T("stat_years", _lang)}</div></div>'
+        f'<div class="impact-stat"><div class="impact-stat-num">6</div><div class="impact-stat-lbl">{T("stat_models", _lang)}</div></div>'
+        f'<div class="impact-stat"><div class="impact-stat-num">8</div><div class="impact-stat-lbl">{T("stat_scenarios", _lang)}</div></div>'
+        f'<div class="impact-stat"><div class="impact-stat-num">2</div><div class="impact-stat-lbl">{T("stat_languages", _lang)}</div></div>'
         f'</div>'
         f'</div>',
         unsafe_allow_html=True,
     )
 
     ind = st.selectbox(
-        "Select Indicator",
+        T("lbl_select_indicator", _lang),
         list(gcc_data.INDICATORS.keys()),
         format_func=lambda k: gcc_data.INDICATORS[k]["name"],
         key="overview_ind",
@@ -1102,7 +1114,7 @@ def page_gcc_overview():
     lib = meta["lower_is_better"]
 
     # ── KPI cards ────────────────────────────────────────────────────────────
-    _section("Latest Values (2024)")
+    _section(T("sec_latest_values", _lang))
     stats = _cached_trend_stats(ind)
     cols = st.columns(6)
     for i, (country, info) in enumerate(gcc_data.COUNTRIES.items()):
@@ -1147,7 +1159,7 @@ def page_gcc_overview():
         st.plotly_chart(fig, use_container_width=True)
 
     with col2:
-        _section("Country Rankings (2024)")
+        _section(T("sec_country_rankings", _lang))
         rankings = gcc_data.get_rankings(ind)
         fig2 = go.Figure(layout=_plotly_base())
         bar_colors = [_COUNTRY_COLORS[c] for c in rankings["country"]]
@@ -1165,31 +1177,31 @@ def page_gcc_overview():
         st.plotly_chart(fig2, use_container_width=True)
 
     # ── Regional summary table ────────────────────────────────────────────────
-    _section("Regional Performance Summary")
+    _section(T("sec_regional_summary", _lang))
     summary_rows = []
     for country, info in gcc_data.COUNTRIES.items():
         s = stats[country]
-        trend_en, _, improving = (
-            ("Improving", "", True) if s["improving"] else
-            ("Stable", "", False) if abs(s["slope"]) < 0.05 else
-            ("Worsening", "", False)
+        trend_lbl = (
+            T("trend_improving", _lang) if s["improving"] else
+            T("trend_stable", _lang) if abs(s["slope"]) < 0.05 else
+            T("trend_worsening", _lang)
         )
         summary_rows.append({
-            "Country": f"{info['flag']} {country}",
-            "Latest (%)": f"{s['latest']:.1f}",
-            "YoY Change": f"{'↓' if s['yoy_change'] < 0 else '↑'} {abs(s['yoy_change']):.1f}pp",
-            "5-Yr CAGR": f"{s['cagr_5y']:+.1f}%",
-            "vs GCC Avg": f"{s['latest'] - s['gcc_avg_latest']:+.1f}pp",
-            "Trend": trend_en,
-            "Rank": s["rank_2024"],
+            T("col_country", _lang): f"{info['flag']} {country}",
+            T("col_latest", _lang): f"{s['latest']:.1f}",
+            T("col_yoy", _lang): f"{'↓' if s['yoy_change'] < 0 else '↑'} {abs(s['yoy_change']):.1f}pp",
+            T("col_cagr", _lang): f"{s['cagr_5y']:+.1f}%",
+            T("col_vs_gcc", _lang): f"{s['latest'] - s['gcc_avg_latest']:+.1f}pp",
+            T("col_trend", _lang): trend_lbl,
+            T("col_rank", _lang): s["rank_2024"],
         })
     st.dataframe(
-        pd.DataFrame(summary_rows).set_index("Country"),
+        pd.DataFrame(summary_rows).set_index(T("col_country", _lang)),
         use_container_width=True,
     )
 
     # ── Year-on-year heatmap ──────────────────────────────────────────────────
-    _section("Year-on-Year Change Heatmap")
+    _section(T("sec_yoy_heatmap", _lang))
     df_all_yoy = df_all.diff().dropna()
     fig3 = go.Figure(go.Heatmap(
         z=df_all_yoy.T.values,
@@ -1206,7 +1218,7 @@ def page_gcc_overview():
     st.plotly_chart(fig3, use_container_width=True)
 
     # ── AI Regional Intelligence Snapshot ────────────────────────────────────
-    _section("AI Regional Intelligence Snapshot")
+    _section(T("sec_ai_snapshot", _lang))
     st.markdown(
         '<div class="data-source-strip">'
         '🤖 Real-time risk classification — based on latest value, trend direction, and optimal target range'
@@ -1255,17 +1267,18 @@ def page_gcc_overview():
 # ──────────────────────────────────────────────────────────────────────────────
 
 def page_country_explorer():
+    _lang = st.session_state.get("lang", "EN")
     col_sel1, col_sel2 = st.columns([1, 2])
     with col_sel1:
         country = st.selectbox(
-            "Country",
+            T("lbl_country", _lang),
             list(gcc_data.COUNTRIES.keys()),
             format_func=lambda c: f"{gcc_data.COUNTRIES[c]['flag']} {c}",
             key="explorer_country",
         )
     with col_sel2:
         ind = st.selectbox(
-            "Indicator",
+            T("lbl_indicator", _lang),
             list(gcc_data.INDICATORS.keys()),
             format_func=lambda k: gcc_data.INDICATORS[k]["name"],
             key="explorer_ind",
@@ -1287,22 +1300,22 @@ def page_country_explorer():
     arrow = "↓" if s["yoy_change"] < 0 else "↑"
 
     k1.markdown(_kpi_card(
-        "Latest Value (2024)", f"{s['latest']:.1f}%",
-        f"{arrow} {abs(s['yoy_change']):.1f}pp YoY", good_yoy,
+        T("kpi_latest", _lang), f"{s['latest']:.1f}%",
+        f"{arrow} {abs(s['yoy_change']):.1f}pp {T('yoy_label', _lang)}", good_yoy,
     ), unsafe_allow_html=True)
     k2.markdown(_kpi_card(
-        "GCC Average (2024)", f"{s['gcc_avg_latest']:.1f}%",
+        T("kpi_gcc_avg", _lang), f"{s['gcc_avg_latest']:.1f}%",
         f"vs avg: {s['latest'] - s['gcc_avg_latest']:+.1f}pp",
         (s["latest"] < s["gcc_avg_latest"]) if lib else (s["latest"] > s["gcc_avg_latest"]),
     ), unsafe_allow_html=True)
     k3.markdown(_kpi_card(
-        "5-Year CAGR", f"{s['cagr_5y']:+.1f}%",
-        "Improving" if s["improving"] else "Worsening",
+        T("kpi_cagr", _lang), f"{s['cagr_5y']:+.1f}%",
+        T("kpi_improving", _lang) if s["improving"] else T("kpi_worsening", _lang),
         s["improving"],
     ), unsafe_allow_html=True)
     k4.markdown(_kpi_card(
-        f"GCC Rank (2024)", f"#{s['rank_2024']} of 6",
-        "Best" if s["rank_2024"] == 1 else "",
+        T("kpi_rank", _lang), f"#{s['rank_2024']} of 6",
+        T("kpi_best", _lang) if s["rank_2024"] == 1 else "",
         s["rank_2024"] <= 2,
     ), unsafe_allow_html=True)
 
@@ -1311,7 +1324,7 @@ def page_country_explorer():
     # ── Main trend chart ──────────────────────────────────────────────────────
     col_main, col_side = st.columns([2, 1])
     with col_main:
-        _section(f"{country}: Historical Trend vs GCC Average")
+        _section(f"{country}: {T('sec_historical_trend', _lang)}")
         annual = gcc_data.get_series(country, ind)
         gcc_avg = gcc_data.get_gcc_average(ind)
         fig = go.Figure(layout=_plotly_base())
@@ -1332,7 +1345,7 @@ def page_country_explorer():
         st.plotly_chart(fig, use_container_width=True)
 
     with col_side:
-        _section("All Indicators Snapshot")
+        _section(T("sec_all_indicators", _lang))
         snap_rows = []
         for k, m in gcc_data.INDICATORS.items():
             ts = gcc_data.get_trend_stats(country, k)
@@ -1344,7 +1357,7 @@ def page_country_explorer():
         st.dataframe(pd.DataFrame(snap_rows).set_index("Indicator"), use_container_width=True)
 
     # ── Year-on-year bar chart ────────────────────────────────────────────────
-    _section("Year-on-Year Changes")
+    _section(T("sec_yoy_changes", _lang))
     yoy_series = annual.diff().dropna()
     bar_colors = [
         (_SUCCESS if (v < 0 if lib else v > 0) else _DANGER)
@@ -1375,7 +1388,7 @@ def page_country_explorer():
         )
 
     # ── AI Risk & Intelligence Quick Panel ───────────────────────────────────
-    _section("AI Intelligence Assessment")
+    _section(T("sec_ai_assessment", _lang))
     _, _, improving_c = intel_module._slope_label(s["slope"], lib)
     rp = intel_module.compute_risk_profile(
         indicator=ind,
@@ -1427,6 +1440,7 @@ def page_country_explorer():
 # ──────────────────────────────────────────────────────────────────────────────
 
 def page_forecast_center():
+    _lang = st.session_state.get("lang", "EN")
     _banner(
         "📈 AI Forecast Center",
         "Time-series forecasting · Expanding-window cross-validation · Six model ensemble · Probabilistic prediction intervals",
@@ -1444,7 +1458,7 @@ def page_forecast_center():
         unsafe_allow_html=True,
     )
     demo_col, _ = st.columns([1, 4])
-    if demo_col.button("▶ Run Demo Forecast", type="primary", use_container_width=True):
+    if demo_col.button(T("btn_run_forecast", _lang), type="primary", use_container_width=True):
         st.session_state["fc_country"] = "Saudi Arabia"
         st.session_state["fc_ind"] = "youth_unemployment_rate"
         st.session_state["fc_freq"] = "Annual"
@@ -1456,24 +1470,24 @@ def page_forecast_center():
     # ── Config ───────────────────────────────────────────────────────────────
     cfg1, cfg2, cfg3, cfg4 = st.columns(4)
     country = cfg1.selectbox(
-        "Country",
+        T("lbl_country", _lang),
         list(gcc_data.COUNTRIES.keys()),
         format_func=lambda c: f"{gcc_data.COUNTRIES[c]['flag']} {c}",
         key="fc_country",
     )
     ind = cfg2.selectbox(
-        "Indicator",
+        T("lbl_indicator", _lang),
         list(gcc_data.INDICATORS.keys()),
         format_func=lambda k: gcc_data.INDICATORS[k]["name"],
         key="fc_ind",
     )
-    freq = cfg3.selectbox("Frequency", ["Annual", "Monthly"],
+    freq = cfg3.selectbox(T("lbl_frequency", _lang), ["Annual", "Monthly"],
                            key="fc_freq")
     freq_code = "Y" if freq == "Annual" else "M"
     max_h = 5 if freq_code == "Y" else 24
-    horizon = cfg4.slider("Forecast Horizon", 1, max_h, 3 if freq_code == "Y" else 12, key="fc_horizon")
+    horizon = cfg4.slider(T("lbl_horizon", _lang), 1, max_h, 3 if freq_code == "Y" else 12, key="fc_horizon")
 
-    confidence = st.slider("Confidence Level", 0.70, 0.95, 0.80, 0.05, key="fc_conf")
+    confidence = st.slider(T("lbl_confidence", _lang), 0.70, 0.95, 0.80, 0.05, key="fc_conf")
     alpha = 1 - confidence
 
     run_col, _ = st.columns([1, 4])
@@ -1503,7 +1517,7 @@ def page_forecast_center():
         meta = gcc_data.INDICATORS[ind]
 
         st.markdown("<br>", unsafe_allow_html=True)
-        _section("Results")
+        _section(T("sec_results", _lang))
 
         # Compute confidence classification for this forecast
         widths_fc = (hi - lo).values
@@ -1602,7 +1616,7 @@ def page_forecast_center():
             dl_col1, dl_col2 = st.columns(2)
             csv = fc_df.to_csv(index=False).encode()
             dl_col1.download_button(
-                "⬇ Download Forecast CSV", csv,
+                T("btn_download_forecast", _lang), csv,
                 f"{country}_{ind}_forecast.csv", "text/csv",
                 use_container_width=True,
             )
@@ -1622,7 +1636,7 @@ def page_forecast_center():
                 f"Caveat: Forecasts support — not replace — strategic decision-making.\n"
             )
             dl_col2.download_button(
-                "⬇ Download Executive Brief (TXT)", exec_txt.encode(),
+                T("btn_download_brief", _lang), exec_txt.encode(),
                 f"{country}_{ind}_executive_brief.txt", "text/plain",
                 use_container_width=True,
             )
@@ -1642,6 +1656,7 @@ def page_forecast_center():
 # ──────────────────────────────────────────────────────────────────────────────
 
 def page_ai_insights():
+    _lang = st.session_state.get("lang", "EN")
     _banner(
         "🤖 AI Decision Intelligence",
         "Ministry-grade bilingual analysis · Strategic risk engine · Policy recommendations · Comparative GCC intelligence",
@@ -1678,13 +1693,14 @@ def page_ai_insights():
 
     # ── Strategic Alerts strip ────────────────────────────────────────────────
     if report.strategic_alerts:
-        _section("Strategic Alerts")
+        _section(T("sec_strategic_alerts", _lang))
         for alert in report.strategic_alerts:
             st.markdown(_alert_card(alert.title, alert.message, alert.level),
                         unsafe_allow_html=True)
         st.markdown("<br>", unsafe_allow_html=True)
 
-    tab_en, tab_ar = st.tabs(["🇬🇧 English Report", "🇸🇦 التقرير العربي"])
+    _insights_tabs = [f"🇬🇧 {T('tab_english', _lang)}", f"🇸🇦 {T('tab_arabic', _lang)}"]
+    tab_en, tab_ar = st.tabs(_insights_tabs)
 
     # ── English ──────────────────────────────────────────────────────────────
     with tab_en:
@@ -1714,26 +1730,26 @@ def page_ai_insights():
             unsafe_allow_html=True,
         )
 
-        _section("Executive Summary")
+        _section(T("sec_exec_summary", _lang))
         st.markdown(
             _exec_card("EXECUTIVE INTELLIGENCE SUMMARY", report.executive_summary),
             unsafe_allow_html=True,
         )
 
-        _section("Key Insights")
+        _section(T("sec_key_insights", _lang))
         for ins in report.key_insights:
             st.markdown(_insight_html(ins), unsafe_allow_html=True)
 
         # GCC Comparison & Causal Interpretation side by side
         col_gcc, col_causal = st.columns(2)
         with col_gcc:
-            _section("Comparative GCC Intelligence")
+            _section(T("sec_gcc_intelligence", _lang))
             st.markdown(
                 _exec_card("REGIONAL BENCHMARKING ANALYSIS", report.gcc_comparison),
                 unsafe_allow_html=True,
             )
         with col_causal:
-            _section("Causal & Driver Interpretation")
+            _section(T("sec_causal_driver", _lang))
             st.markdown(
                 _exec_card("STRUCTURAL DRIVER ANALYSIS", report.causal_interpretation),
                 unsafe_allow_html=True,
@@ -1741,19 +1757,19 @@ def page_ai_insights():
 
         col_r, col_f = st.columns(2)
         with col_r:
-            _section("Risk Assessment")
+            _section(T("sec_risk_assessment", _lang))
             for risk in report.risk_assessment:
                 st.markdown(_insight_html(risk, "risk"), unsafe_allow_html=True)
         with col_f:
-            _section("Influencing Factors")
+            _section(T("sec_influencing", _lang))
             for fac in report.influencing_factors:
                 st.markdown(_insight_html(fac), unsafe_allow_html=True)
 
-        _section("Strategic Policy Recommendations")
+        _section(T("sec_policy_recs", _lang))
         for rec in report.policy_recommendations:
             st.markdown(_insight_html(rec, "rec"), unsafe_allow_html=True)
 
-        _section("Forecast Outlook")
+        _section(T("sec_forecast_outlook", _lang))
         st.markdown(
             _exec_card("🔭 FORECAST OUTLOOK & STRATEGIC HORIZON", report.forecast_outlook),
             unsafe_allow_html=True,
@@ -1808,7 +1824,7 @@ def page_ai_insights():
         ar_report_text = intel_module.format_arabic_executive_report(report)
         dl_a1, dl_a2 = st.columns(2)
         dl_a1.download_button(
-            "⬇ تحميل التقرير العربي الكامل",
+            T("btn_download_report_ar", _lang),
             ar_report_text.encode("utf-8"),
             f"{country}_{ind}_executive_report_ar.txt",
             "text/plain",
@@ -1837,7 +1853,7 @@ def page_ai_insights():
             f"Caveat: AI-assisted analysis supports — not replaces — strategic decision-making.\n"
         )
         dl_a2.download_button(
-            "⬇ Download Executive Report (EN)",
+            T("btn_download_report_en", _lang),
             en_report.encode("utf-8"),
             f"{country}_{ind}_executive_report_en.txt",
             "text/plain",
@@ -1859,6 +1875,7 @@ def page_ai_insights():
 # ──────────────────────────────────────────────────────────────────────────────
 
 def page_scenario_simulator():
+    _lang = st.session_state.get("lang", "EN")
     _banner(
         "⚙️ AI Strategic Planning Engine",
         "Scenario simulation · Elasticity-based impact modelling · Ministry-grade bilingual intelligence · GCC comparative analysis",
@@ -1910,7 +1927,7 @@ def page_scenario_simulator():
     )
 
     # ── Scenario presets ─────────────────────────────────────────────────────
-    _section("Strategic Scenario Presets")
+    _section(T("sec_scenario_presets", _lang))
     st.markdown(
         '<div class="data-source-strip">'
         '📋 Select a preset to instantly configure all policy levers — or adjust manually below.'
@@ -1949,7 +1966,7 @@ def page_scenario_simulator():
     col_params, col_results = st.columns([1, 2])
 
     with col_params:
-        _section("Policy Levers")
+        _section(T("sec_policy_levers", _lang))
         st.markdown(
             '<div style="font-size:0.76rem;color:#666;margin-bottom:0.8rem;line-height:1.5;">'
             'Adjust levers from baseline (0). Each unit = +1 percentage-point shift in that driver.'
@@ -1972,7 +1989,7 @@ def page_scenario_simulator():
 
         st.markdown("<br>", unsafe_allow_html=True)
         if any(abs(v) > 0.01 for v in params.values()):
-            if st.button("↺ Reset to Baseline", use_container_width=True):
+            if st.button(T("btn_reset", _lang), use_container_width=True):
                 st.session_state["apply_preset"] = "baseline"
                 st.rerun()
 
@@ -2043,7 +2060,7 @@ def page_scenario_simulator():
     chart_col, waterfall_col = st.columns([3, 2])
 
     with chart_col:
-        _section("Baseline vs Scenario Forecast")
+        _section(T("sec_baseline_vs_scenario", _lang))
         sc_color = _SUCCESS if impact_good else _DANGER
         fig = go.Figure(layout=_plotly_base(f"{flag} {country} — {meta['name']} Scenario"))
         fig.add_trace(go.Scatter(
@@ -2084,7 +2101,7 @@ def page_scenario_simulator():
         st.plotly_chart(fig, use_container_width=True)
 
     with waterfall_col:
-        _section("Driver Contribution Breakdown")
+        _section(T("sec_driver_breakdown", _lang))
         active_drivers = {k: v for k, v in result.driver_contributions.items() if abs(v) > 1e-4}
         if active_drivers:
             d_labels = [scenario_module._PARAM_LABELS.get(k, k) for k in active_drivers]
@@ -2115,8 +2132,8 @@ def page_scenario_simulator():
             )
 
     # ── Executive Intelligence Report ─────────────────────────────────────────
-    _section("Executive Scenario Intelligence Report")
-    tab_en, tab_ar = st.tabs(["🇬🇧 Strategic Intelligence Report", "🇸🇦 التقرير الاستراتيجي"])
+    _section(T("sec_exec_scenario_report", _lang))
+    tab_en, tab_ar = st.tabs([f"🇬🇧 {T('tab_english', _lang)}", f"🇸🇦 {T('tab_arabic', _lang)}"])
 
     with tab_en:
         s_badge = _badge(intel.scenario_label, intel.severity)
@@ -2223,6 +2240,7 @@ def page_scenario_simulator():
 # ──────────────────────────────────────────────────────────────────────────────
 
 def page_explainability():
+    _lang = st.session_state.get("lang", "EN")
     _banner(
         "🔬 AI Transparency & Explainability Center",
         "Trustworthy AI · Transparent forecasting · Model reliability · Driver intelligence · Responsible decision support",
@@ -2279,16 +2297,16 @@ def page_explainability():
     )
 
     tab_model, tab_driver, tab_conf, tab_decomp, tab_transparency = st.tabs([
-        "📊 Model Reliability",
-        "🔑 Driver Intelligence",
-        "🔭 Forecast Confidence",
-        "📉 Decomposition",
-        "🛡️ AI Transparency",
+        T("tab_model_reliability", _lang),
+        T("tab_driver_intel", _lang),
+        T("tab_forecast_conf", _lang),
+        T("tab_decomp", _lang),
+        T("tab_ai_transparency", _lang),
     ])
 
     # ── Tab 1: Model Reliability ──────────────────────────────────────────────
     with tab_model:
-        _section("Model Quality Assessment")
+        _section(T("sec_model_quality", _lang))
         st.markdown(_model_quality_panel(quality, backtest.best_model_smape), unsafe_allow_html=True)
 
         st.markdown(
@@ -2582,7 +2600,8 @@ def _render_ai_transparency_tab(
     horizon: int = 0, conf_label: str = "",
 ) -> None:
     """Render the Responsible AI & Transparency section."""
-    _section("Responsible AI & Methodology")
+    _lang = st.session_state.get("lang", "EN")
+    _section(T("sec_ai_transparency", _lang))
 
     t1, t2 = st.columns(2)
     with t1:
