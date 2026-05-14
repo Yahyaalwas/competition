@@ -33,6 +33,7 @@ from src import scenario as scenario_module
 from src.models.baselines import NaiveModel, SeasonalNaiveModel, MovingAverageModel, DriftModel
 from src.models.arima_model import ARIMAModel
 from src.models.ml_model import LightGBMModel
+from src.i18n import T, is_ar
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Page config & theme
@@ -44,6 +45,9 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
+if "lang" not in st.session_state:
+    st.session_state["lang"] = "EN"
 
 _PRIMARY   = "#1B4F72"
 _GOLD      = "#C39B4E"
@@ -560,19 +564,32 @@ div[data-testid="metric-container"] {{
 # ──────────────────────────────────────────────────────────────────────────────
 
 with st.sidebar:
-    st.markdown("""
+    # Language toggle
+    col_en, col_ar = st.columns(2)
+    if col_en.button("🌐 English", use_container_width=True,
+                     type="primary" if st.session_state["lang"] == "EN" else "secondary"):
+        st.session_state["lang"] = "EN"
+        st.rerun()
+    if col_ar.button("🌐 عربي", use_container_width=True,
+                     type="primary" if st.session_state["lang"] == "AR" else "secondary"):
+        st.session_state["lang"] = "AR"
+        st.rerun()
+
+    _lang = st.session_state["lang"]
+
+    st.markdown(f"""
     <div style="text-align:center; padding: 1.2rem 0.5rem 1.6rem;">
         <div style="font-size:2.8rem; line-height:1; margin-bottom:0.5rem;">🌍</div>
         <div style="font-weight:800; font-size:0.95rem; letter-spacing:-0.2px;
                     line-height:1.3; margin-bottom:3px;">
-            GCC Employment Intelligence
+            {T('app_title', _lang)}
         </div>
         <div style="display:inline-block; background:rgba(195,155,78,0.2);
                     border:1px solid rgba(195,155,78,0.4); color:#E8C96E;
                     padding:2px 10px; border-radius:20px;
                     font-size:0.60rem; font-weight:700; letter-spacing:1.0px;
                     text-transform:uppercase; margin-top:4px;">
-            AI POLICY ANALYTICS
+            {T('app_badge', _lang)}
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -580,30 +597,31 @@ with st.sidebar:
     PAGE = st.radio(
         "Navigation",
         [
-            "🌍  GCC Overview",
-            "🔍  Country Explorer",
-            "📈  Forecast Center",
-            "🤖  AI Insights",
-            "⚙️  Scenario Simulator",
-            "🔬  Explainability",
+            T("nav_overview", _lang),
+            T("nav_country", _lang),
+            T("nav_forecast", _lang),
+            T("nav_insights", _lang),
+            T("nav_scenario", _lang),
+            T("nav_explain", _lang),
         ],
         label_visibility="collapsed",
     )
 
-    st.markdown("""
+    st.markdown(f"""
     <div style="background:rgba(195,155,78,0.08);border:1px solid rgba(195,155,78,0.22);
                 border-radius:10px;padding:0.7rem 0.9rem;margin:0.6rem 0;font-size:0.69rem;
-                line-height:1.7;color:rgba(255,255,255,0.75);">
+                line-height:1.7;color:rgba(255,255,255,0.75);
+                {'direction:rtl;text-align:right;' if is_ar(_lang) else ''}">
         <div style="font-weight:700;font-size:0.65rem;text-transform:uppercase;
                     letter-spacing:0.8px;color:#E8C96E;margin-bottom:6px;">
-            📋 Demo Flow
+            {T('demo_flow_title', _lang)}
         </div>
-        <div>1 · Regional overview &amp; KPIs</div>
-        <div>2 · Country deep-dive</div>
-        <div>3 · Run AI forecast</div>
-        <div>4 · Read AI intelligence</div>
-        <div>5 · Simulate scenarios</div>
-        <div>6 · Review explainability</div>
+        <div>{T('demo_1', _lang)}</div>
+        <div>{T('demo_2', _lang)}</div>
+        <div>{T('demo_3', _lang)}</div>
+        <div>{T('demo_4', _lang)}</div>
+        <div>{T('demo_5', _lang)}</div>
+        <div>{T('demo_6', _lang)}</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -621,16 +639,16 @@ with st.sidebar:
         f'padding:0.7rem 0.9rem; font-size:0.71rem; line-height:1.65; '
         f'border-left:2px solid rgba(195,155,78,0.4);">'
         f'<div style="font-weight:700; font-size:0.68rem; text-transform:uppercase; '
-        f'letter-spacing:0.6px; opacity:0.7; margin-bottom:4px;">Data Source</div>'
+        f'letter-spacing:0.6px; opacity:0.7; margin-bottom:4px;">{T("data_source", _lang)}</div>'
         f'World Bank Open Data API v2<br>'
-        f'{cache_icon} Cache: {"Live" if cache_ok else "Not available"}<br>'
+        f'{cache_icon} {T("cache_live", _lang) if cache_ok else "Not available"}<br>'
         f'<span style="opacity:0.65;">Updated: {last_updated}</span>'
         f'</div>',
         unsafe_allow_html=True,
     )
 
     st.markdown("<br>", unsafe_allow_html=True)
-    if st.button("🔄 Refresh Data", use_container_width=True, help="Re-fetch all indicators from World Bank API"):
+    if st.button(T("btn_refresh", _lang), use_container_width=True, help="Re-fetch all indicators from World Bank API"):
         with st.spinner("Fetching data from World Bank Open Data…"):
             try:
                 gcc_data.refresh(force=True)
