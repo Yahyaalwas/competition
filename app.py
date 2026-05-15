@@ -677,9 +677,31 @@ _lang_global = st.session_state.get("lang", "EN")
 if is_ar(_lang_global):
     st.markdown("""
     <style>
-    .main .block-container { direction: rtl; }
-    .stMarkdown, .stDataFrame, .stText { direction: rtl; text-align: right; }
-    h1, h2, h3, p, div { direction: rtl; }
+    /* Content text — RTL */
+    [data-testid="stMarkdownContainer"] p,
+    [data-testid="stMarkdownContainer"] li,
+    [data-testid="stMarkdownContainer"] h1,
+    [data-testid="stMarkdownContainer"] h2,
+    [data-testid="stMarkdownContainer"] h3 {
+        direction: rtl; text-align: right;
+    }
+    /* Our custom HTML components — RTL */
+    .section-header, .kpi-card, .kpi-val, .kpi-label, .kpi-delta,
+    .insight-card, .risk-card, .rec-card, .outlook-card,
+    .risk-panel, .exec-card, .exec-card-eyebrow,
+    .alert-card, .alert-title, .alert-msg,
+    .driver-card, .confidence-card, .scenario-section,
+    .caveat-strip, .transparency-card, .next-step-cta,
+    .impact-stat-lbl {
+        direction: rtl; text-align: right;
+    }
+    .section-header { text-align: right !important; border-right: 4px solid #C39B4E; border-left: none; padding-right: 14px; padding-left: 0; }
+    /* Badges stay inline LTR */
+    .badge { direction: ltr; display: inline-block; }
+    /* Dataframe headers */
+    [data-testid="stDataFrame"] th { text-align: right !important; }
+    /* Select labels */
+    .stSelectbox label, .stSlider label, .stRadio label { direction: rtl; text-align: right; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -798,8 +820,10 @@ def _cached_trend_stats(indicator: str) -> dict:
 def _kpi_card(label: str, value: str, delta: str = "", good: bool = True) -> str:
     delta_cls = "delta-good" if good else "delta-bad"
     delta_html = f'<div class="kpi-delta {delta_cls}">{delta}</div>' if delta else ""
+    _lk = st.session_state.get("lang", "EN")
+    rtl = 'direction:rtl;text-align:right;' if is_ar(_lk) else ''
     return (
-        f'<div class="kpi-card">'
+        f'<div class="kpi-card" style="{rtl}">'
         f'<div class="kpi-val">{value}</div>'
         f'<div class="kpi-label">{label}</div>'
         f'{delta_html}'
@@ -867,7 +891,9 @@ def _banner(title: str, subtitle: str) -> None:
 
 
 def _section(title: str) -> None:
-    st.markdown(f'<div class="section-header">{title}</div>', unsafe_allow_html=True)
+    _ls = st.session_state.get("lang", "EN")
+    rtl = 'direction:rtl;text-align:right;border-right:4px solid #C39B4E;border-left:none;padding-right:14px;padding-left:0;' if is_ar(_ls) else ''
+    st.markdown(f'<div class="section-header" style="{rtl}">{title}</div>', unsafe_allow_html=True)
 
 
 def _scenario_section(title: str, body: str, border_color: str = "#1B4F72") -> str:
@@ -1037,45 +1063,60 @@ def page_gcc_overview():
     _n_improving = sum(1 for s in _hero_stats.values() if s["improving"])
     _best_flag = gcc_data.COUNTRIES[_best_country]["flag"]
 
+    _hs = {
+        "gcc_avg_lbl":    {"EN": "GCC Avg Unemployment",  "AR": "متوسط البطالة الخليجي"},
+        "gcc_avg_sub":    {"EN": "Youth (15–24)",          "AR": "الشباب (15–24)"},
+        "best_lbl":       {"EN": "Best Performer",         "AR": "أفضل أداء"},
+        "improving_lbl":  {"EN": "Countries Improving",    "AR": "دول في تحسن"},
+        "improving_sub":  {"EN": "Youth unemployment",     "AR": "بطالة الشباب"},
+        "highest_lbl":    {"EN": "Highest Rate",           "AR": "أعلى معدل"},
+        "indicators_lbl": {"EN": "Indicators Tracked",     "AR": "مؤشرات مُتابَعة"},
+        "indicators_sub": {"EN": "WB Open Data",           "AR": "بيانات البنك الدولي"},
+    }
+    def _ht(k): return _hs[k].get(_lang, _hs[k]["EN"])
     hero_stats_html = (
         f'<div class="hero-stats">'
         f'<div class="hero-stat">'
         f'  <div class="hero-stat-val">{_gcc_avg_unem:.1f}%</div>'
-        f'  <div class="hero-stat-lbl">GCC Avg Unemployment</div>'
-        f'  <div class="hero-stat-sub">Youth (15–24)</div>'
+        f'  <div class="hero-stat-lbl">{_ht("gcc_avg_lbl")}</div>'
+        f'  <div class="hero-stat-sub">{_ht("gcc_avg_sub")}</div>'
         f'</div>'
         f'<div class="hero-stat">'
         f'  <div class="hero-stat-val">{_best_flag} {_hero_stats[_best_country]["latest"]:.1f}%</div>'
-        f'  <div class="hero-stat-lbl">Best Performer</div>'
+        f'  <div class="hero-stat-lbl">{_ht("best_lbl")}</div>'
         f'  <div class="hero-stat-sub">{_best_country}</div>'
         f'</div>'
         f'<div class="hero-stat">'
         f'  <div class="hero-stat-val">{_n_improving}/6</div>'
-        f'  <div class="hero-stat-lbl">Countries Improving</div>'
-        f'  <div class="hero-stat-sub">Youth unemployment</div>'
+        f'  <div class="hero-stat-lbl">{_ht("improving_lbl")}</div>'
+        f'  <div class="hero-stat-sub">{_ht("improving_sub")}</div>'
         f'</div>'
         f'<div class="hero-stat">'
         f'  <div class="hero-stat-val">{_hero_stats[_worst_country]["latest"]:.1f}%</div>'
-        f'  <div class="hero-stat-lbl">Highest Rate</div>'
+        f'  <div class="hero-stat-lbl">{_ht("highest_lbl")}</div>'
         f'  <div class="hero-stat-sub">{_worst_country}</div>'
         f'</div>'
         f'<div class="hero-stat">'
         f'  <div class="hero-stat-val">5</div>'
-        f'  <div class="hero-stat-lbl">Indicators Tracked</div>'
-        f'  <div class="hero-stat-sub">WB Open Data</div>'
+        f'  <div class="hero-stat-lbl">{_ht("indicators_lbl")}</div>'
+        f'  <div class="hero-stat-sub">{_ht("indicators_sub")}</div>'
         f'</div>'
         f'</div>'
     )
 
+    _hero_eyebrow = "منصة الذكاء الاستراتيجي لدول مجلس التعاون" if is_ar(_lang) else "GCC STRATEGIC INTELLIGENCE PLATFORM"
+    _hero_title   = "🌍 مركز ذكاء توظيف الشباب الخليجي" if is_ar(_lang) else "🌍 GCC Youth Employment Intelligence Hub"
+    _hero_mission_lbl = "ست دول خليجية · خمسة مؤشرات للبنك الدولي · 2010–2024" if is_ar(_lang) else f"Six GCC nations · Five World Bank indicators · 2010–2024"
+    _rtl_hero = 'direction:rtl;text-align:right;' if is_ar(_lang) else ''
     st.markdown(f"""
-    <div class="hero-banner">
-        <div class="hero-eyebrow">GCC STRATEGIC INTELLIGENCE PLATFORM</div>
-        <h1 class="hero-title">🌍 GCC Youth Employment Intelligence Hub</h1>
+    <div class="hero-banner" style="{_rtl_hero}">
+        <div class="hero-eyebrow">{_hero_eyebrow}</div>
+        <h1 class="hero-title">{_hero_title}</h1>
         <p class="hero-subtitle">
             {T('overview_subtitle', _lang)}
         </p>
         <p class="hero-mission">
-            Six GCC nations · Five World Bank indicators · 2010–2024 · {src_label} · Updated: {updated_at}
+            {_hero_mission_lbl} · {src_label} · Updated: {updated_at}
         </p>
         <hr class="hero-divider">
         {hero_stats_html}
@@ -1083,14 +1124,17 @@ def page_gcc_overview():
     """, unsafe_allow_html=True)
 
     # ── Platform story intro ─────────────────────────────────────────────────
+    if is_ar(_lang):
+        _story_title = "نظرة عامة على المنصة"
+        _story_body  = 'تُقدّم هذه المنصة <strong>ذكاءً استراتيجياً مدعوماً بالذكاء الاصطناعي</strong> لتخطيط سياسات سوق العمل للشباب في دول مجلس التعاون، من خلال <strong>بيانات حقيقية من البنك الدولي</strong> و<strong>نماذج تنبؤية متعددة</strong> و<strong>رؤى ثنائية اللغة</strong> تُجيب على: <em>أين نحن؟ إلى أين نتجه؟ ماذا نفعل؟</em>'
+    else:
+        _story_title = "PLATFORM OVERVIEW — WHAT THIS PLATFORM DOES"
+        _story_body  = 'This platform delivers <strong>AI-powered strategic intelligence</strong> for GCC youth labour-market policy planning. It combines <strong>real World Bank data</strong>, <strong>multi-model time-series forecasting</strong>, and <strong>AI-generated bilingual insights</strong> to help policymakers answer: <em>Where are we? Where are we heading? What should we do?</em>'
     st.markdown(
-        f'<div class="story-panel">'
-        f'<div class="story-panel-title">PLATFORM OVERVIEW — WHAT THIS PLATFORM DOES</div>'
+        f'<div class="story-panel" style="{_rtl_hero}">'
+        f'<div class="story-panel-title">{_story_title}</div>'
         f'<div style="font-size:0.88rem;color:#333;line-height:1.7;">'
-        f'This platform delivers <strong>AI-powered strategic intelligence</strong> for GCC youth labour-market '
-        f'policy planning. It combines <strong>real World Bank data</strong>, '
-        f'<strong>multi-model time-series forecasting</strong>, and <strong>AI-generated bilingual insights</strong> '
-        f'to help policymakers answer: <em>Where are we? Where are we heading? What should we do?</em>'
+        f'{_story_body}'
         f'</div>'
         f'<div class="impact-stat-row">'
         f'<div class="impact-stat"><div class="impact-stat-num">6</div><div class="impact-stat-lbl">{T("stat_nations", _lang)}</div></div>'
@@ -1122,7 +1166,7 @@ def page_gcc_overview():
         yoy = s["yoy_change"]
         good = (yoy < 0) if lib else (yoy > 0)
         arrow = "↓" if yoy < 0 else "↑"
-        delta = f"{arrow} {abs(yoy):.1f}pp YoY"
+        delta = f"{arrow} {abs(yoy):.1f}pp {T('yoy_label', _lang)}"
         cols[i].markdown(
             _kpi_card(f"{info['flag']} {country}", f"{s['latest']:.1f}%", delta, good),
             unsafe_allow_html=True,
@@ -1289,10 +1333,16 @@ def page_country_explorer():
     s = gcc_data.get_trend_stats(country, ind)
     lib = meta["lower_is_better"]
 
-    _banner(
-        f"{info['flag']} {country} — Strategic Employment Intelligence",
-        f"{meta['name']} · {info['vision']} · 2010–2024 · Source: World Bank Open Data",
-    )
+    if is_ar(_lang):
+        _banner(
+            f"{info['flag']} {country} — الذكاء الاستراتيجي للتوظيف",
+            f"{meta['name']} · {info['vision']} · 2010–2024 · المصدر: بيانات البنك الدولي",
+        )
+    else:
+        _banner(
+            f"{info['flag']} {country} — Strategic Employment Intelligence",
+            f"{meta['name']} · {info['vision']} · 2010–2024 · Source: World Bank Open Data",
+        )
 
     # ── KPI row ───────────────────────────────────────────────────────────────
     k1, k2, k3, k4 = st.columns(4)
