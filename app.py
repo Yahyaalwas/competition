@@ -33,7 +33,6 @@ from src import scenario as scenario_module
 from src.models.baselines import NaiveModel, SeasonalNaiveModel, MovingAverageModel, DriftModel
 from src.models.arima_model import ARIMAModel
 from src.models.ml_model import LightGBMModel
-from src.i18n import T, is_ar
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Page config & theme
@@ -45,9 +44,6 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
-
-if "lang" not in st.session_state:
-    st.session_state["lang"] = "EN"
 
 _PRIMARY   = "#1B4F72"
 _GOLD      = "#C39B4E"
@@ -564,32 +560,19 @@ div[data-testid="metric-container"] {{
 # ──────────────────────────────────────────────────────────────────────────────
 
 with st.sidebar:
-    # Language toggle
-    col_en, col_ar = st.columns(2)
-    if col_en.button("🌐 English", use_container_width=True,
-                     type="primary" if st.session_state["lang"] == "EN" else "secondary"):
-        st.session_state["lang"] = "EN"
-        st.rerun()
-    if col_ar.button("🌐 عربي", use_container_width=True,
-                     type="primary" if st.session_state["lang"] == "AR" else "secondary"):
-        st.session_state["lang"] = "AR"
-        st.rerun()
-
-    _lang = st.session_state["lang"]
-
     st.markdown(f"""
     <div style="text-align:center; padding: 1.2rem 0.5rem 1.6rem;">
         <div style="font-size:2.8rem; line-height:1; margin-bottom:0.5rem;">🌍</div>
         <div style="font-weight:800; font-size:0.95rem; letter-spacing:-0.2px;
                     line-height:1.3; margin-bottom:3px;">
-            {T('app_title', _lang)}
+            GCC Employment Intelligence
         </div>
         <div style="display:inline-block; background:rgba(195,155,78,0.2);
                     border:1px solid rgba(195,155,78,0.4); color:#E8C96E;
                     padding:2px 10px; border-radius:20px;
                     font-size:0.60rem; font-weight:700; letter-spacing:1.0px;
                     text-transform:uppercase; margin-top:4px;">
-            {T('app_badge', _lang)}
+            AI POLICY ANALYTICS
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -597,31 +580,30 @@ with st.sidebar:
     PAGE = st.radio(
         "Navigation",
         [
-            T("nav_overview", _lang),
-            T("nav_country", _lang),
-            T("nav_forecast", _lang),
-            T("nav_insights", _lang),
-            T("nav_scenario", _lang),
-            T("nav_explain", _lang),
+            "🌍  GCC Overview",
+            "🔍  Country Explorer",
+            "📈  Forecast Center",
+            "🤖  AI Insights",
+            "⚙️  Scenario Simulator",
+            "🔬  Explainability",
         ],
         label_visibility="collapsed",
     )
 
-    st.markdown(f"""
+    st.markdown("""
     <div style="background:rgba(195,155,78,0.08);border:1px solid rgba(195,155,78,0.22);
                 border-radius:10px;padding:0.7rem 0.9rem;margin:0.6rem 0;font-size:0.69rem;
-                line-height:1.7;color:rgba(255,255,255,0.75);
-                {'direction:rtl;text-align:right;' if is_ar(_lang) else ''}">
+                line-height:1.7;color:rgba(255,255,255,0.75);">
         <div style="font-weight:700;font-size:0.65rem;text-transform:uppercase;
                     letter-spacing:0.8px;color:#E8C96E;margin-bottom:6px;">
-            {T('demo_flow_title', _lang)}
+            📋 Demo Flow
         </div>
-        <div>{T('demo_1', _lang)}</div>
-        <div>{T('demo_2', _lang)}</div>
-        <div>{T('demo_3', _lang)}</div>
-        <div>{T('demo_4', _lang)}</div>
-        <div>{T('demo_5', _lang)}</div>
-        <div>{T('demo_6', _lang)}</div>
+        <div>1 · Regional overview &amp; KPIs</div>
+        <div>2 · Country deep-dive</div>
+        <div>3 · Run AI forecast</div>
+        <div>4 · Read AI intelligence</div>
+        <div>5 · Simulate scenarios</div>
+        <div>6 · Review explainability</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -639,16 +621,16 @@ with st.sidebar:
         f'padding:0.7rem 0.9rem; font-size:0.71rem; line-height:1.65; '
         f'border-left:2px solid rgba(195,155,78,0.4);">'
         f'<div style="font-weight:700; font-size:0.68rem; text-transform:uppercase; '
-        f'letter-spacing:0.6px; opacity:0.7; margin-bottom:4px;">{T("data_source", _lang)}</div>'
+        f'letter-spacing:0.6px; opacity:0.7; margin-bottom:4px;">DATA SOURCE</div>'
         f'World Bank Open Data API v2<br>'
-        f'{cache_icon} {T("cache_live", _lang) if cache_ok else "Not available"}<br>'
+        f'{cache_icon} {"Cache: Live" if cache_ok else "Not available"}<br>'
         f'<span style="opacity:0.65;">Updated: {last_updated}</span>'
         f'</div>',
         unsafe_allow_html=True,
     )
 
     st.markdown("<br>", unsafe_allow_html=True)
-    if st.button(T("btn_refresh", _lang), use_container_width=True, help="Re-fetch all indicators from World Bank API"):
+    if st.button("🔄 Refresh Data", use_container_width=True, help="Re-fetch all indicators from World Bank API"):
         with st.spinner("Fetching data from World Bank Open Data…"):
             try:
                 gcc_data.refresh(force=True)
@@ -672,50 +654,10 @@ with st.sidebar:
         unsafe_allow_html=True,
     )
 
-# ── RTL CSS (injected when Arabic is active) ─────────────────────────────────
-_lang_global = st.session_state.get("lang", "EN")
-if is_ar(_lang_global):
-    st.markdown("""
-    <style>
-    /* ── Sidebar RTL ── */
-    [data-testid="stSidebar"] { direction: rtl; }
-    [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] { direction: rtl; text-align: right; }
-    [data-testid="stSidebar"] .stRadio > div { direction: rtl; }
-    [data-testid="stSidebar"] .stRadio label { direction: rtl; text-align: right; }
-    [data-testid="stSidebar"] .stButton > button { direction: rtl; }
+# ──────────────────────────────────────────────────────────────────────────────
+# Helpers — (RTL block removed; English-only UI)
+# ──────────────────────────────────────────────────────────────────────────────
 
-    /* ── Main content text ── */
-    [data-testid="stMarkdownContainer"] p,
-    [data-testid="stMarkdownContainer"] li,
-    [data-testid="stMarkdownContainer"] h1,
-    [data-testid="stMarkdownContainer"] h2,
-    [data-testid="stMarkdownContainer"] h3 {
-        direction: rtl; text-align: right;
-    }
-    /* ── Form labels ── */
-    .stSelectbox label, .stSlider label, .stRadio label,
-    .stTextInput label, .stNumberInput label { direction: rtl; text-align: right; }
-
-    /* ── Our custom HTML components ── */
-    .section-header, .kpi-card, .kpi-val, .kpi-label, .kpi-delta,
-    .insight-card, .risk-card, .rec-card, .outlook-card,
-    .risk-panel, .exec-card, .exec-card-eyebrow,
-    .alert-card, .alert-title, .alert-msg,
-    .driver-card, .confidence-card, .scenario-section,
-    .caveat-strip, .transparency-card, .next-step-cta,
-    .story-panel, .story-panel-title, .impact-stat-lbl,
-    .hero-stat-lbl, .hero-stat-sub, .hero-eyebrow, .hero-subtitle {
-        direction: rtl; text-align: right;
-    }
-    .section-header { text-align: right !important; border-right: 4px solid #C39B4E; border-left: none; padding-right: 14px; padding-left: 0; }
-    /* Tabs label text */
-    [data-testid="stTabs"] button { font-size: 0.85rem; }
-    /* Badges stay LTR */
-    .badge { direction: ltr; display: inline-block; }
-    /* Dataframe */
-    [data-testid="stDataFrame"] th, [data-testid="stDataFrame"] td { text-align: right !important; }
-    </style>
-    """, unsafe_allow_html=True)
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Helpers
@@ -832,10 +774,8 @@ def _cached_trend_stats(indicator: str) -> dict:
 def _kpi_card(label: str, value: str, delta: str = "", good: bool = True) -> str:
     delta_cls = "delta-good" if good else "delta-bad"
     delta_html = f'<div class="kpi-delta {delta_cls}">{delta}</div>' if delta else ""
-    _lk = st.session_state.get("lang", "EN")
-    rtl = 'direction:rtl;text-align:right;' if is_ar(_lk) else ''
     return (
-        f'<div class="kpi-card" style="{rtl}">'
+        f'<div class="kpi-card">'
         f'<div class="kpi-val">{value}</div>'
         f'<div class="kpi-label">{label}</div>'
         f'{delta_html}'
@@ -903,9 +843,7 @@ def _banner(title: str, subtitle: str) -> None:
 
 
 def _section(title: str) -> None:
-    _ls = st.session_state.get("lang", "EN")
-    rtl = 'direction:rtl;text-align:right;border-right:4px solid #C39B4E;border-left:none;padding-right:14px;padding-left:0;' if is_ar(_ls) else ''
-    st.markdown(f'<div class="section-header" style="{rtl}">{title}</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="section-header">{title}</div>', unsafe_allow_html=True)
 
 
 def _scenario_section(title: str, body: str, border_color: str = "#1B4F72") -> str:
@@ -918,18 +856,14 @@ def _scenario_section(title: str, body: str, border_color: str = "#1B4F72") -> s
 
 
 def _next_step_cta(page_label: str, hint: str) -> str:
-    _ln = st.session_state.get("lang", "EN")
-    label_txt = "الخطوة التالية" if is_ar(_ln) else "Next Step"
-    rtl = 'direction:rtl;text-align:right;' if is_ar(_ln) else ''
-    arrow = "‹" if is_ar(_ln) else "›"
     return (
-        f'<div class="next-step-cta" style="{rtl}">'
+        f'<div class="next-step-cta">'
         f'<div>'
-        f'<div class="next-step-label">{label_txt}</div>'
+        f'<div class="next-step-label">Next Step</div>'
         f'<div class="next-step-title">{page_label} →</div>'
         f'<div style="font-size:0.78rem;opacity:0.72;margin-top:2px;">{hint}</div>'
         f'</div>'
-        f'<div class="next-step-arrow">{arrow}</div>'
+        f'<div class="next-step-arrow">›</div>'
         f'</div>'
     )
 
@@ -1036,7 +970,7 @@ def _model_quality_panel(quality: dict, smape: float) -> str:
         f'<div style="display:flex;align-items:center;margin-bottom:8px;">'
         f'<div class="model-grade-badge" style="background:{color};">{badge}</div>'
         f'<div>'
-        f'<div style="font-weight:800;font-size:1.05rem;color:{color};">{tier} {"أداء النموذج" if is_ar(st.session_state.get("lang","EN")) else "Model Performance"}</div>'
+        f'<div style="font-weight:800;font-size:1.05rem;color:{color};">{tier} Model Performance</div>'
         f'<div style="font-size:0.75rem;color:#777;">sMAPE: {smape:.2f}%</div>'
         f'</div>'
         f'</div>'
@@ -1051,7 +985,6 @@ def _model_quality_panel(quality: dict, smape: float) -> str:
 # ──────────────────────────────────────────────────────────────────────────────
 
 def page_gcc_overview():
-    _lang = st.session_state.get("lang", "EN")
     from src.wb_data import get_metadata, is_cache_available
     wb_meta = get_metadata()
     src_label  = wb_meta.get("source", "World Bank Open Data")
@@ -1089,7 +1022,7 @@ def page_gcc_overview():
         "indicators_lbl": {"EN": "Indicators Tracked",     "AR": "مؤشرات مُتابَعة"},
         "indicators_sub": {"EN": "WB Open Data",           "AR": "بيانات البنك الدولي"},
     }
-    def _ht(k): return _hs[k].get(_lang, _hs[k]["EN"])
+    def _ht(k): return _hs[k]["EN"]
     hero_stats_html = (
         f'<div class="hero-stats">'
         f'<div class="hero-stat">'
@@ -1120,16 +1053,15 @@ def page_gcc_overview():
         f'</div>'
     )
 
-    _hero_eyebrow = "منصة الذكاء الاستراتيجي لدول مجلس التعاون" if is_ar(_lang) else "GCC STRATEGIC INTELLIGENCE PLATFORM"
-    _hero_title   = "🌍 مركز ذكاء توظيف الشباب الخليجي" if is_ar(_lang) else "🌍 GCC Youth Employment Intelligence Hub"
-    _hero_mission_lbl = "ست دول خليجية · خمسة مؤشرات للبنك الدولي · 2010–2024" if is_ar(_lang) else f"Six GCC nations · Five World Bank indicators · 2010–2024"
-    _rtl_hero = 'direction:rtl;text-align:right;' if is_ar(_lang) else ''
+    _hero_eyebrow = "GCC STRATEGIC INTELLIGENCE PLATFORM"
+    _hero_title   = "🌍 GCC Youth Employment Intelligence Hub"
+    _hero_mission_lbl = "Six GCC nations · Five World Bank indicators · 2010–2024"
     st.markdown(f"""
-    <div class="hero-banner" style="{_rtl_hero}">
+    <div class="hero-banner">
         <div class="hero-eyebrow">{_hero_eyebrow}</div>
         <h1 class="hero-title">{_hero_title}</h1>
         <p class="hero-subtitle">
-            {T('overview_subtitle', _lang)}
+            {"AI-powered statistical intelligence for Gulf policy planning and youth labour market strategy"}
         </p>
         <p class="hero-mission">
             {_hero_mission_lbl} · {src_label} · Updated: {updated_at}
@@ -1140,32 +1072,28 @@ def page_gcc_overview():
     """, unsafe_allow_html=True)
 
     # ── Platform story intro ─────────────────────────────────────────────────
-    if is_ar(_lang):
-        _story_title = "نظرة عامة على المنصة"
-        _story_body  = 'تُقدّم هذه المنصة <strong>ذكاءً استراتيجياً مدعوماً بالذكاء الاصطناعي</strong> لتخطيط سياسات سوق العمل للشباب في دول مجلس التعاون، من خلال <strong>بيانات حقيقية من البنك الدولي</strong> و<strong>نماذج تنبؤية متعددة</strong> و<strong>رؤى ثنائية اللغة</strong> تُجيب على: <em>أين نحن؟ إلى أين نتجه؟ ماذا نفعل؟</em>'
-    else:
-        _story_title = "PLATFORM OVERVIEW — WHAT THIS PLATFORM DOES"
-        _story_body  = 'This platform delivers <strong>AI-powered strategic intelligence</strong> for GCC youth labour-market policy planning. It combines <strong>real World Bank data</strong>, <strong>multi-model time-series forecasting</strong>, and <strong>AI-generated bilingual insights</strong> to help policymakers answer: <em>Where are we? Where are we heading? What should we do?</em>'
+    _story_title = "PLATFORM OVERVIEW — WHAT THIS PLATFORM DOES"
+    _story_body  = 'This platform delivers <strong>AI-powered strategic intelligence</strong> for GCC youth labour-market policy planning. It combines <strong>real World Bank data</strong>, <strong>multi-model time-series forecasting</strong>, and <strong>AI-generated bilingual insights</strong> to help policymakers answer: <em>Where are we? Where are we heading? What should we do?</em>'
     st.markdown(
-        f'<div class="story-panel" style="{_rtl_hero}">'
+        f'<div class="story-panel">'
         f'<div class="story-panel-title">{_story_title}</div>'
         f'<div style="font-size:0.88rem;color:#333;line-height:1.7;">'
         f'{_story_body}'
         f'</div>'
         f'<div class="impact-stat-row">'
-        f'<div class="impact-stat"><div class="impact-stat-num">6</div><div class="impact-stat-lbl">{T("stat_nations", _lang)}</div></div>'
-        f'<div class="impact-stat"><div class="impact-stat-num">5</div><div class="impact-stat-lbl">{T("stat_indicators", _lang)}</div></div>'
-        f'<div class="impact-stat"><div class="impact-stat-num">14+</div><div class="impact-stat-lbl">{T("stat_years", _lang)}</div></div>'
-        f'<div class="impact-stat"><div class="impact-stat-num">6</div><div class="impact-stat-lbl">{T("stat_models", _lang)}</div></div>'
-        f'<div class="impact-stat"><div class="impact-stat-num">8</div><div class="impact-stat-lbl">{T("stat_scenarios", _lang)}</div></div>'
-        f'<div class="impact-stat"><div class="impact-stat-num">2</div><div class="impact-stat-lbl">{T("stat_languages", _lang)}</div></div>'
+        f'<div class="impact-stat"><div class="impact-stat-num">6</div><div class="impact-stat-lbl">{"GCC NATIONS"}</div></div>'
+        f'<div class="impact-stat"><div class="impact-stat-num">5</div><div class="impact-stat-lbl">{"INDICATORS"}</div></div>'
+        f'<div class="impact-stat"><div class="impact-stat-num">14+</div><div class="impact-stat-lbl">{"YEARS OF DATA"}</div></div>'
+        f'<div class="impact-stat"><div class="impact-stat-num">6</div><div class="impact-stat-lbl">{"AI MODELS"}</div></div>'
+        f'<div class="impact-stat"><div class="impact-stat-num">8</div><div class="impact-stat-lbl">{"SCENARIOS"}</div></div>'
+        f'<div class="impact-stat"><div class="impact-stat-num">2</div><div class="impact-stat-lbl">{"LANGUAGES"}</div></div>'
         f'</div>'
         f'</div>',
         unsafe_allow_html=True,
     )
 
     ind = st.selectbox(
-        T("lbl_select_indicator", _lang),
+        "Select Indicator",
         list(gcc_data.INDICATORS.keys()),
         format_func=lambda k: gcc_data.INDICATORS[k]["name"],
         key="overview_ind",
@@ -1174,7 +1102,7 @@ def page_gcc_overview():
     lib = meta["lower_is_better"]
 
     # ── KPI cards ────────────────────────────────────────────────────────────
-    _section(T("sec_latest_values", _lang))
+    _section("Latest Values (2024)")
     stats = _cached_trend_stats(ind)
     cols = st.columns(6)
     for i, (country, info) in enumerate(gcc_data.COUNTRIES.items()):
@@ -1182,7 +1110,7 @@ def page_gcc_overview():
         yoy = s["yoy_change"]
         good = (yoy < 0) if lib else (yoy > 0)
         arrow = "↓" if yoy < 0 else "↑"
-        delta = f"{arrow} {abs(yoy):.1f}pp {T('yoy_label', _lang)}"
+        delta = f"{arrow} {abs(yoy):.1f}pp YoY"
         cols[i].markdown(
             _kpi_card(f"{info['flag']} {country}", f"{s['latest']:.1f}%", delta, good),
             unsafe_allow_html=True,
@@ -1219,7 +1147,7 @@ def page_gcc_overview():
         st.plotly_chart(fig, use_container_width=True)
 
     with col2:
-        _section(T("sec_country_rankings", _lang))
+        _section("Country Rankings (2024)")
         rankings = gcc_data.get_rankings(ind)
         fig2 = go.Figure(layout=_plotly_base())
         bar_colors = [_COUNTRY_COLORS[c] for c in rankings["country"]]
@@ -1237,31 +1165,31 @@ def page_gcc_overview():
         st.plotly_chart(fig2, use_container_width=True)
 
     # ── Regional summary table ────────────────────────────────────────────────
-    _section(T("sec_regional_summary", _lang))
+    _section("Regional Performance Summary")
     summary_rows = []
     for country, info in gcc_data.COUNTRIES.items():
         s = stats[country]
         trend_lbl = (
-            T("trend_improving", _lang) if s["improving"] else
-            T("trend_stable", _lang) if abs(s["slope"]) < 0.05 else
-            T("trend_worsening", _lang)
+            "Improving" if s["improving"] else
+            "Stable" if abs(s["slope"]) < 0.05 else
+            "Worsening"
         )
         summary_rows.append({
-            T("col_country", _lang): f"{info['flag']} {country}",
-            T("col_latest", _lang): f"{s['latest']:.1f}",
-            T("col_yoy", _lang): f"{'↓' if s['yoy_change'] < 0 else '↑'} {abs(s['yoy_change']):.1f}pp",
-            T("col_cagr", _lang): f"{s['cagr_5y']:+.1f}%",
-            T("col_vs_gcc", _lang): f"{s['latest'] - s['gcc_avg_latest']:+.1f}pp",
-            T("col_trend", _lang): trend_lbl,
-            T("col_rank", _lang): s["rank_2024"],
+            "Country": f"{info['flag']} {country}",
+            "Latest (%)": f"{s['latest']:.1f}",
+            "YoY Change": f"{'↓' if s['yoy_change'] < 0 else '↑'} {abs(s['yoy_change']):.1f}pp",
+            "5-Yr CAGR": f"{s['cagr_5y']:+.1f}%",
+            "vs GCC Avg": f"{s['latest'] - s['gcc_avg_latest']:+.1f}pp",
+            "Trend": trend_lbl,
+            "Rank": s["rank_2024"],
         })
     st.dataframe(
-        pd.DataFrame(summary_rows).set_index(T("col_country", _lang)),
+        pd.DataFrame(summary_rows).set_index("Country"),
         use_container_width=True,
     )
 
     # ── Year-on-year heatmap ──────────────────────────────────────────────────
-    _section(T("sec_yoy_heatmap", _lang))
+    _section("Year-on-Year Change Heatmap")
     df_all_yoy = df_all.diff().dropna()
     fig3 = go.Figure(go.Heatmap(
         z=df_all_yoy.T.values,
@@ -1278,7 +1206,7 @@ def page_gcc_overview():
     st.plotly_chart(fig3, use_container_width=True)
 
     # ── AI Regional Intelligence Snapshot ────────────────────────────────────
-    _section(T("sec_ai_snapshot", _lang))
+    _section("AI Regional Intelligence Snapshot")
     st.markdown(
         '<div class="data-source-strip">'
         '🤖 Real-time risk classification — based on latest value, trend direction, and optimal target range'
@@ -1306,7 +1234,7 @@ def page_gcc_overview():
             f'<div style="font-size:0.78rem;font-weight:700;margin:3px 0;">{country}</div>'
             f'<div style="font-size:1.1rem;font-weight:800;color:#1B4F72;">{s["latest"]:.1f}%</div>'
             f'<div style="font-size:0.70rem;color:{trend_color};font-weight:600;">'
-            f'{trend_arrow} {abs(s["yoy_change"]):.1f}pp {T("yoy_label", _lang)}</div>'
+            f'{trend_arrow} {abs(s["yoy_change"]):.1f}pp YoY</div>'
             f'<div style="margin-top:5px;">{_badge(rp.label, rp.badge_color)}</div>'
             f'</div>',
             unsafe_allow_html=True,
@@ -1315,8 +1243,8 @@ def page_gcc_overview():
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown(
         _next_step_cta(
-            T("nav_country", _lang),
-            "اختر دولة خليجية لتحليل تاريخي معمق ورؤى ذكية." if is_ar(_lang) else "Select a GCC nation for deep-dive historical analysis, all-indicators snapshot, and AI intelligence assessment."
+            "🔍  Country Explorer",
+            "Select a GCC nation for deep-dive historical analysis, all-indicators snapshot, and AI intelligence assessment."
         ),
         unsafe_allow_html=True,
     )
@@ -1327,18 +1255,17 @@ def page_gcc_overview():
 # ──────────────────────────────────────────────────────────────────────────────
 
 def page_country_explorer():
-    _lang = st.session_state.get("lang", "EN")
     col_sel1, col_sel2 = st.columns([1, 2])
     with col_sel1:
         country = st.selectbox(
-            T("lbl_country", _lang),
+            "Country",
             list(gcc_data.COUNTRIES.keys()),
             format_func=lambda c: f"{gcc_data.COUNTRIES[c]['flag']} {c}",
             key="explorer_country",
         )
     with col_sel2:
         ind = st.selectbox(
-            T("lbl_indicator", _lang),
+            "Indicator",
             list(gcc_data.INDICATORS.keys()),
             format_func=lambda k: gcc_data.INDICATORS[k]["name"],
             key="explorer_ind",
@@ -1349,16 +1276,10 @@ def page_country_explorer():
     s = gcc_data.get_trend_stats(country, ind)
     lib = meta["lower_is_better"]
 
-    if is_ar(_lang):
-        _banner(
-            f"{info['flag']} {country} — الذكاء الاستراتيجي للتوظيف",
-            f"{meta['name']} · {info['vision']} · 2010–2024 · المصدر: بيانات البنك الدولي",
-        )
-    else:
-        _banner(
-            f"{info['flag']} {country} — Strategic Employment Intelligence",
-            f"{meta['name']} · {info['vision']} · 2010–2024 · Source: World Bank Open Data",
-        )
+    _banner(
+        f"{info['flag']} {country} — Strategic Employment Intelligence",
+        f"{meta['name']} · {info['vision']} · 2010–2024 · Source: World Bank Open Data",
+    )
 
     # ── KPI row ───────────────────────────────────────────────────────────────
     k1, k2, k3, k4 = st.columns(4)
@@ -1366,22 +1287,22 @@ def page_country_explorer():
     arrow = "↓" if s["yoy_change"] < 0 else "↑"
 
     k1.markdown(_kpi_card(
-        T("kpi_latest", _lang), f"{s['latest']:.1f}%",
-        f"{arrow} {abs(s['yoy_change']):.1f}pp {T('yoy_label', _lang)}", good_yoy,
+        "Latest Value (2024)", f"{s['latest']:.1f}%",
+        f"{arrow} {abs(s['yoy_change']):.1f}pp YoY", good_yoy,
     ), unsafe_allow_html=True)
     k2.markdown(_kpi_card(
-        T("kpi_gcc_avg", _lang), f"{s['gcc_avg_latest']:.1f}%",
+        "GCC Average (2024)", f"{s['gcc_avg_latest']:.1f}%",
         f"vs avg: {s['latest'] - s['gcc_avg_latest']:+.1f}pp",
         (s["latest"] < s["gcc_avg_latest"]) if lib else (s["latest"] > s["gcc_avg_latest"]),
     ), unsafe_allow_html=True)
     k3.markdown(_kpi_card(
-        T("kpi_cagr", _lang), f"{s['cagr_5y']:+.1f}%",
-        T("kpi_improving", _lang) if s["improving"] else T("kpi_worsening", _lang),
+        "5-Year CAGR", f"{s['cagr_5y']:+.1f}%",
+        "Improving" if s["improving"] else "Worsening",
         s["improving"],
     ), unsafe_allow_html=True)
     k4.markdown(_kpi_card(
-        T("kpi_rank", _lang), f"#{s['rank_2024']} of 6",
-        T("kpi_best", _lang) if s["rank_2024"] == 1 else "",
+        "GCC Rank (2024)", f"#{s['rank_2024']} of 6",
+        "Best" if s["rank_2024"] == 1 else "",
         s["rank_2024"] <= 2,
     ), unsafe_allow_html=True)
 
@@ -1390,7 +1311,7 @@ def page_country_explorer():
     # ── Main trend chart ──────────────────────────────────────────────────────
     col_main, col_side = st.columns([2, 1])
     with col_main:
-        _section(f"{country}: {T('sec_historical_trend', _lang)}")
+        _section(f"{country}: Historical Trend vs GCC Average")
         annual = gcc_data.get_series(country, ind)
         gcc_avg = gcc_data.get_gcc_average(ind)
         fig = go.Figure(layout=_plotly_base())
@@ -1411,11 +1332,11 @@ def page_country_explorer():
         st.plotly_chart(fig, use_container_width=True)
 
     with col_side:
-        _section(T("sec_all_indicators", _lang))
+        _section("All Indicators Snapshot")
         snap_rows = []
-        _col_ind   = "المؤشر"   if is_ar(_lang) else "Indicator"
-        _col_val   = "القيمة"   if is_ar(_lang) else "Value"
-        _col_trend = "الاتجاه"  if is_ar(_lang) else "Trend"
+        _col_ind   = "Indicator"
+        _col_val   = "Value"
+        _col_trend = "Trend"
         for k, m in gcc_data.INDICATORS.items():
             ts = gcc_data.get_trend_stats(country, k)
             snap_rows.append({
@@ -1426,7 +1347,7 @@ def page_country_explorer():
         st.dataframe(pd.DataFrame(snap_rows).set_index(_col_ind), use_container_width=True)
 
     # ── Year-on-year bar chart ────────────────────────────────────────────────
-    _section(T("sec_yoy_changes", _lang))
+    _section("Year-on-Year Changes")
     yoy_series = annual.diff().dropna()
     bar_colors = [
         (_SUCCESS if (v < 0 if lib else v > 0) else _DANGER)
@@ -1457,7 +1378,7 @@ def page_country_explorer():
         )
 
     # ── AI Risk & Intelligence Quick Panel ───────────────────────────────────
-    _section(T("sec_ai_assessment", _lang))
+    _section("AI Intelligence Assessment")
     _, _, improving_c = intel_module._slope_label(s["slope"], lib)
     rp = intel_module.compute_risk_profile(
         indicator=ind,
@@ -1497,8 +1418,8 @@ def page_country_explorer():
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown(
         _next_step_cta(
-            T("nav_forecast", _lang),
-            f"شغّل تنبؤ الذكاء الاصطناعي لـ{country} لتوليد رؤى تنبؤية ودرجات ثقة النموذج." if is_ar(_lang) else f"Run an AI forecast for {country} to generate predictive intelligence and model confidence scores."
+            "📈  Forecast Center",
+            f"Run an AI forecast for {country} to generate predictive intelligence and model confidence scores."
         ),
         unsafe_allow_html=True,
     )
@@ -1509,7 +1430,6 @@ def page_country_explorer():
 # ──────────────────────────────────────────────────────────────────────────────
 
 def page_forecast_center():
-    _lang = st.session_state.get("lang", "EN")
     _banner(
         "📈 AI Forecast Center",
         "Time-series forecasting · Expanding-window cross-validation · Six model ensemble · Probabilistic prediction intervals",
@@ -1527,7 +1447,7 @@ def page_forecast_center():
         unsafe_allow_html=True,
     )
     demo_col, _ = st.columns([1, 4])
-    if demo_col.button(T("btn_run_forecast", _lang), type="primary", use_container_width=True):
+    if demo_col.button("▶ Run Demo Forecast", type="primary", use_container_width=True):
         st.session_state["fc_country"] = "Saudi Arabia"
         st.session_state["fc_ind"] = "youth_unemployment_rate"
         st.session_state["fc_freq"] = "Annual"
@@ -1539,24 +1459,24 @@ def page_forecast_center():
     # ── Config ───────────────────────────────────────────────────────────────
     cfg1, cfg2, cfg3, cfg4 = st.columns(4)
     country = cfg1.selectbox(
-        T("lbl_country", _lang),
+        "Country",
         list(gcc_data.COUNTRIES.keys()),
         format_func=lambda c: f"{gcc_data.COUNTRIES[c]['flag']} {c}",
         key="fc_country",
     )
     ind = cfg2.selectbox(
-        T("lbl_indicator", _lang),
+        "Indicator",
         list(gcc_data.INDICATORS.keys()),
         format_func=lambda k: gcc_data.INDICATORS[k]["name"],
         key="fc_ind",
     )
-    freq = cfg3.selectbox(T("lbl_frequency", _lang), ["Annual", "Monthly"],
+    freq = cfg3.selectbox("Frequency", ["Annual", "Monthly"],
                            key="fc_freq")
     freq_code = "Y" if freq == "Annual" else "M"
     max_h = 5 if freq_code == "Y" else 24
-    horizon = cfg4.slider(T("lbl_horizon", _lang), 1, max_h, 3 if freq_code == "Y" else 12, key="fc_horizon")
+    horizon = cfg4.slider("Forecast Horizon", 1, max_h, 3 if freq_code == "Y" else 12, key="fc_horizon")
 
-    confidence = st.slider(T("lbl_confidence", _lang), 0.70, 0.95, 0.80, 0.05, key="fc_conf")
+    confidence = st.slider("Confidence Level", 0.70, 0.95, 0.80, 0.05, key="fc_conf")
     alpha = 1 - confidence
 
     run_col, _ = st.columns([1, 4])
@@ -1586,7 +1506,7 @@ def page_forecast_center():
         meta = gcc_data.INDICATORS[ind]
 
         st.markdown("<br>", unsafe_allow_html=True)
-        _section(T("sec_results", _lang))
+        _section("Results")
 
         # Compute confidence classification for this forecast
         widths_fc = (hi - lo).values
@@ -1630,11 +1550,7 @@ def page_forecast_center():
             unsafe_allow_html=True,
         )
 
-        _fc_tabs = (
-            ["📈 مخطط التنبؤ", "📊 مقارنة النماذج", "📋 جدول التنبؤ"]
-            if is_ar(_lang) else
-            ["📈 Forecast Chart", "📊 Model Comparison", "📋 Forecast Table"]
-        )
+        _fc_tabs = ["📈 Forecast Chart", "📊 Model Comparison", "📋 Forecast Table"]
         tab1, tab2, tab3 = st.tabs(_fc_tabs)
 
         with tab1:
@@ -1690,7 +1606,7 @@ def page_forecast_center():
             dl_col1, dl_col2 = st.columns(2)
             csv = fc_df.to_csv(index=False).encode()
             dl_col1.download_button(
-                T("btn_download_forecast", _lang), csv,
+                "⬇ Download Forecast CSV", csv,
                 f"{country}_{ind}_forecast.csv", "text/csv",
                 use_container_width=True,
             )
@@ -1710,7 +1626,7 @@ def page_forecast_center():
                 f"Caveat: Forecasts support — not replace — strategic decision-making.\n"
             )
             dl_col2.download_button(
-                T("btn_download_brief", _lang), exec_txt.encode(),
+                "⬇ Download Executive Brief", exec_txt.encode(),
                 f"{country}_{ind}_executive_brief.txt", "text/plain",
                 use_container_width=True,
             )
@@ -1718,8 +1634,8 @@ def page_forecast_center():
         st.markdown("<br>", unsafe_allow_html=True)
         st.markdown(
             _next_step_cta(
-                T("nav_insights", _lang),
-                f"ولّد الذكاء الاستراتيجي — تصنيف المخاطر والتحليل الثنائي اللغة والتوصيات لـ{country}." if is_ar(_lang) else f"Generate AI strategic intelligence — risk classification, bilingual analysis, and policy recommendations for {country}."
+                "🤖  AI Insights",
+                f"Generate AI strategic intelligence — risk classification, bilingual analysis, and policy recommendations for {country}."
             ),
             unsafe_allow_html=True,
         )
@@ -1730,7 +1646,6 @@ def page_forecast_center():
 # ──────────────────────────────────────────────────────────────────────────────
 
 def page_ai_insights():
-    _lang = st.session_state.get("lang", "EN")
     _banner(
         "🤖 AI Decision Intelligence",
         "Ministry-grade bilingual analysis · Strategic risk engine · Policy recommendations · Comparative GCC intelligence",
@@ -1767,13 +1682,13 @@ def page_ai_insights():
 
     # ── Strategic Alerts strip ────────────────────────────────────────────────
     if report.strategic_alerts:
-        _section(T("sec_strategic_alerts", _lang))
+        _section("Strategic Alerts")
         for alert in report.strategic_alerts:
             st.markdown(_alert_card(alert.title, alert.message, alert.level),
                         unsafe_allow_html=True)
         st.markdown("<br>", unsafe_allow_html=True)
 
-    _insights_tabs = [f"🇬🇧 {T('tab_english', _lang)}", f"🇸🇦 {T('tab_arabic', _lang)}"]
+    _insights_tabs = ["🇬🇧 English", "🇸🇦 Arabic (العربية)"]
     tab_en, tab_ar = st.tabs(_insights_tabs)
 
     # ── English ──────────────────────────────────────────────────────────────
@@ -1804,26 +1719,26 @@ def page_ai_insights():
             unsafe_allow_html=True,
         )
 
-        _section(T("sec_exec_summary", _lang))
+        _section("Executive Summary")
         st.markdown(
             _exec_card("EXECUTIVE INTELLIGENCE SUMMARY", report.executive_summary),
             unsafe_allow_html=True,
         )
 
-        _section(T("sec_key_insights", _lang))
+        _section("Key Insights")
         for ins in report.key_insights:
             st.markdown(_insight_html(ins), unsafe_allow_html=True)
 
         # GCC Comparison & Causal Interpretation side by side
         col_gcc, col_causal = st.columns(2)
         with col_gcc:
-            _section(T("sec_gcc_intelligence", _lang))
+            _section("Comparative GCC Intelligence")
             st.markdown(
                 _exec_card("REGIONAL BENCHMARKING ANALYSIS", report.gcc_comparison),
                 unsafe_allow_html=True,
             )
         with col_causal:
-            _section(T("sec_causal_driver", _lang))
+            _section("Causal & Driver Interpretation")
             st.markdown(
                 _exec_card("STRUCTURAL DRIVER ANALYSIS", report.causal_interpretation),
                 unsafe_allow_html=True,
@@ -1831,19 +1746,19 @@ def page_ai_insights():
 
         col_r, col_f = st.columns(2)
         with col_r:
-            _section(T("sec_risk_assessment", _lang))
+            _section("Risk Assessment")
             for risk in report.risk_assessment:
                 st.markdown(_insight_html(risk, "risk"), unsafe_allow_html=True)
         with col_f:
-            _section(T("sec_influencing", _lang))
+            _section("Influencing Factors")
             for fac in report.influencing_factors:
                 st.markdown(_insight_html(fac), unsafe_allow_html=True)
 
-        _section(T("sec_policy_recs", _lang))
+        _section("Strategic Policy Recommendations")
         for rec in report.policy_recommendations:
             st.markdown(_insight_html(rec, "rec"), unsafe_allow_html=True)
 
-        _section(T("sec_forecast_outlook", _lang))
+        _section("Forecast Outlook")
         st.markdown(
             _exec_card("🔭 FORECAST OUTLOOK & STRATEGIC HORIZON", report.forecast_outlook),
             unsafe_allow_html=True,
@@ -1898,7 +1813,7 @@ def page_ai_insights():
         ar_report_text = intel_module.format_arabic_executive_report(report)
         dl_a1, dl_a2 = st.columns(2)
         dl_a1.download_button(
-            T("btn_download_report_ar", _lang),
+            "⬇ Download Report (AR)",
             ar_report_text.encode("utf-8"),
             f"{country}_{ind}_executive_report_ar.txt",
             "text/plain",
@@ -1927,7 +1842,7 @@ def page_ai_insights():
             f"Caveat: AI-assisted analysis supports — not replaces — strategic decision-making.\n"
         )
         dl_a2.download_button(
-            T("btn_download_report_en", _lang),
+            "⬇ Download Report (EN)",
             en_report.encode("utf-8"),
             f"{country}_{ind}_executive_report_en.txt",
             "text/plain",
@@ -1937,8 +1852,8 @@ def page_ai_insights():
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown(
         _next_step_cta(
-            T("nav_scenario", _lang),
-            f"نمذجة سيناريوهات السياسات ومحاكاة المستقبل لـ{country} بالذكاء الاصطناعي." if is_ar(_lang) else f"Model policy scenarios and simulate alternative futures for {country} using AI-powered impact analysis."
+            "⚙️  Scenario Simulator",
+            f"Model policy scenarios and simulate alternative futures for {country} using AI-powered impact analysis."
         ),
         unsafe_allow_html=True,
     )
@@ -1949,7 +1864,6 @@ def page_ai_insights():
 # ──────────────────────────────────────────────────────────────────────────────
 
 def page_scenario_simulator():
-    _lang = st.session_state.get("lang", "EN")
     _banner(
         "⚙️ AI Strategic Planning Engine",
         "Scenario simulation · Elasticity-based impact modelling · Ministry-grade bilingual intelligence · GCC comparative analysis",
@@ -2001,7 +1915,7 @@ def page_scenario_simulator():
     )
 
     # ── Scenario presets ─────────────────────────────────────────────────────
-    _section(T("sec_scenario_presets", _lang))
+    _section("Strategic Scenario Presets")
     st.markdown(
         '<div class="data-source-strip">'
         '📋 Select a preset to instantly configure all policy levers — or adjust manually below.'
@@ -2040,7 +1954,7 @@ def page_scenario_simulator():
     col_params, col_results = st.columns([1, 2])
 
     with col_params:
-        _section(T("sec_policy_levers", _lang))
+        _section("Policy Levers")
         st.markdown(
             '<div style="font-size:0.76rem;color:#666;margin-bottom:0.8rem;line-height:1.5;">'
             'Adjust levers from baseline (0). Each unit = +1 percentage-point shift in that driver.'
@@ -2063,7 +1977,7 @@ def page_scenario_simulator():
 
         st.markdown("<br>", unsafe_allow_html=True)
         if any(abs(v) > 0.01 for v in params.values()):
-            if st.button(T("btn_reset", _lang), use_container_width=True):
+            if st.button("↺ Reset to Baseline", use_container_width=True):
                 st.session_state["apply_preset"] = "baseline"
                 st.rerun()
 
@@ -2134,7 +2048,7 @@ def page_scenario_simulator():
     chart_col, waterfall_col = st.columns([3, 2])
 
     with chart_col:
-        _section(T("sec_baseline_vs_scenario", _lang))
+        _section("Baseline vs Scenario Forecast")
         sc_color = _SUCCESS if impact_good else _DANGER
         fig = go.Figure(layout=_plotly_base(f"{flag} {country} — {meta['name']} Scenario"))
         fig.add_trace(go.Scatter(
@@ -2175,7 +2089,7 @@ def page_scenario_simulator():
         st.plotly_chart(fig, use_container_width=True)
 
     with waterfall_col:
-        _section(T("sec_driver_breakdown", _lang))
+        _section("Driver Contribution Breakdown")
         active_drivers = {k: v for k, v in result.driver_contributions.items() if abs(v) > 1e-4}
         if active_drivers:
             d_labels = [scenario_module._PARAM_LABELS.get(k, k) for k in active_drivers]
@@ -2206,8 +2120,8 @@ def page_scenario_simulator():
             )
 
     # ── Executive Intelligence Report ─────────────────────────────────────────
-    _section(T("sec_exec_scenario_report", _lang))
-    tab_en, tab_ar = st.tabs([f"🇬🇧 {T('tab_english', _lang)}", f"🇸🇦 {T('tab_arabic', _lang)}"])
+    _section("Executive Scenario Intelligence Report")
+    tab_en, tab_ar = st.tabs(["🇬🇧 English", "🇸🇦 Arabic (العربية)"])
 
     with tab_en:
         s_badge = _badge(intel.scenario_label, intel.severity)
@@ -2302,8 +2216,8 @@ def page_scenario_simulator():
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown(
         _next_step_cta(
-            T("nav_explain", _lang),
-            "افهم كيف يولّد الذكاء الاصطناعي التنبؤات — موثوقية النموذج وذكاء العوامل والمنهجية المسؤولة." if is_ar(_lang) else "Understand how the AI generates forecasts — model reliability, driver intelligence, and responsible AI methodology."
+            "🔬  Explainability",
+            "Understand how the AI generates forecasts — model reliability, driver intelligence, and responsible AI methodology."
         ),
         unsafe_allow_html=True,
     )
@@ -2314,7 +2228,6 @@ def page_scenario_simulator():
 # ──────────────────────────────────────────────────────────────────────────────
 
 def page_explainability():
-    _lang = st.session_state.get("lang", "EN")
     _banner(
         "🔬 AI Transparency & Explainability Center",
         "Trustworthy AI · Transparent forecasting · Model reliability · Driver intelligence · Responsible decision support",
@@ -2371,16 +2284,16 @@ def page_explainability():
     )
 
     tab_model, tab_driver, tab_conf, tab_decomp, tab_transparency = st.tabs([
-        T("tab_model_reliability", _lang),
-        T("tab_driver_intel", _lang),
-        T("tab_forecast_conf", _lang),
-        T("tab_decomp", _lang),
-        T("tab_ai_transparency", _lang),
+        "📊 Model Reliability",
+        "🔍 Driver Intelligence",
+        "📉 Forecast Confidence",
+        "📊 Decomposition",
+        "🛡️ AI Transparency",
     ])
 
     # ── Tab 1: Model Reliability ──────────────────────────────────────────────
     with tab_model:
-        _section(T("sec_model_quality", _lang))
+        _section("Model Quality Assessment")
         st.markdown(_model_quality_panel(quality, backtest.best_model_smape), unsafe_allow_html=True)
 
         st.markdown(
@@ -2674,8 +2587,7 @@ def _render_ai_transparency_tab(
     horizon: int = 0, conf_label: str = "",
 ) -> None:
     """Render the Responsible AI & Transparency section."""
-    _lang = st.session_state.get("lang", "EN")
-    _section(T("sec_ai_transparency", _lang))
+    _section("Responsible AI & Methodology")
 
     t1, t2 = st.columns(2)
     with t1:
