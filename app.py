@@ -677,7 +677,14 @@ _lang_global = st.session_state.get("lang", "EN")
 if is_ar(_lang_global):
     st.markdown("""
     <style>
-    /* Content text — RTL */
+    /* ── Sidebar RTL ── */
+    [data-testid="stSidebar"] { direction: rtl; }
+    [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] { direction: rtl; text-align: right; }
+    [data-testid="stSidebar"] .stRadio > div { direction: rtl; }
+    [data-testid="stSidebar"] .stRadio label { direction: rtl; text-align: right; }
+    [data-testid="stSidebar"] .stButton > button { direction: rtl; }
+
+    /* ── Main content text ── */
     [data-testid="stMarkdownContainer"] p,
     [data-testid="stMarkdownContainer"] li,
     [data-testid="stMarkdownContainer"] h1,
@@ -685,23 +692,28 @@ if is_ar(_lang_global):
     [data-testid="stMarkdownContainer"] h3 {
         direction: rtl; text-align: right;
     }
-    /* Our custom HTML components — RTL */
+    /* ── Form labels ── */
+    .stSelectbox label, .stSlider label, .stRadio label,
+    .stTextInput label, .stNumberInput label { direction: rtl; text-align: right; }
+
+    /* ── Our custom HTML components ── */
     .section-header, .kpi-card, .kpi-val, .kpi-label, .kpi-delta,
     .insight-card, .risk-card, .rec-card, .outlook-card,
     .risk-panel, .exec-card, .exec-card-eyebrow,
     .alert-card, .alert-title, .alert-msg,
     .driver-card, .confidence-card, .scenario-section,
     .caveat-strip, .transparency-card, .next-step-cta,
-    .impact-stat-lbl {
+    .story-panel, .story-panel-title, .impact-stat-lbl,
+    .hero-stat-lbl, .hero-stat-sub, .hero-eyebrow, .hero-subtitle {
         direction: rtl; text-align: right;
     }
     .section-header { text-align: right !important; border-right: 4px solid #C39B4E; border-left: none; padding-right: 14px; padding-left: 0; }
-    /* Badges stay inline LTR */
+    /* Tabs label text */
+    [data-testid="stTabs"] button { font-size: 0.85rem; }
+    /* Badges stay LTR */
     .badge { direction: ltr; display: inline-block; }
-    /* Dataframe headers */
-    [data-testid="stDataFrame"] th { text-align: right !important; }
-    /* Select labels */
-    .stSelectbox label, .stSlider label, .stRadio label { direction: rtl; text-align: right; }
+    /* Dataframe */
+    [data-testid="stDataFrame"] th, [data-testid="stDataFrame"] td { text-align: right !important; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -906,14 +918,18 @@ def _scenario_section(title: str, body: str, border_color: str = "#1B4F72") -> s
 
 
 def _next_step_cta(page_label: str, hint: str) -> str:
+    _ln = st.session_state.get("lang", "EN")
+    label_txt = "الخطوة التالية" if is_ar(_ln) else "Next Step"
+    rtl = 'direction:rtl;text-align:right;' if is_ar(_ln) else ''
+    arrow = "‹" if is_ar(_ln) else "›"
     return (
-        f'<div class="next-step-cta">'
+        f'<div class="next-step-cta" style="{rtl}">'
         f'<div>'
-        f'<div class="next-step-label">Next Step</div>'
+        f'<div class="next-step-label">{label_txt}</div>'
         f'<div class="next-step-title">{page_label} →</div>'
         f'<div style="font-size:0.78rem;opacity:0.72;margin-top:2px;">{hint}</div>'
         f'</div>'
-        f'<div class="next-step-arrow">›</div>'
+        f'<div class="next-step-arrow">{arrow}</div>'
         f'</div>'
     )
 
@@ -1020,7 +1036,7 @@ def _model_quality_panel(quality: dict, smape: float) -> str:
         f'<div style="display:flex;align-items:center;margin-bottom:8px;">'
         f'<div class="model-grade-badge" style="background:{color};">{badge}</div>'
         f'<div>'
-        f'<div style="font-weight:800;font-size:1.05rem;color:{color};">{tier} Model Performance</div>'
+        f'<div style="font-weight:800;font-size:1.05rem;color:{color};">{tier} {"أداء النموذج" if is_ar(st.session_state.get("lang","EN")) else "Model Performance"}</div>'
         f'<div style="font-size:0.75rem;color:#777;">sMAPE: {smape:.2f}%</div>'
         f'</div>'
         f'</div>'
@@ -1290,7 +1306,7 @@ def page_gcc_overview():
             f'<div style="font-size:0.78rem;font-weight:700;margin:3px 0;">{country}</div>'
             f'<div style="font-size:1.1rem;font-weight:800;color:#1B4F72;">{s["latest"]:.1f}%</div>'
             f'<div style="font-size:0.70rem;color:{trend_color};font-weight:600;">'
-            f'{trend_arrow} {abs(s["yoy_change"]):.1f}pp YoY</div>'
+            f'{trend_arrow} {abs(s["yoy_change"]):.1f}pp {T("yoy_label", _lang)}</div>'
             f'<div style="margin-top:5px;">{_badge(rp.label, rp.badge_color)}</div>'
             f'</div>',
             unsafe_allow_html=True,
@@ -1299,8 +1315,8 @@ def page_gcc_overview():
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown(
         _next_step_cta(
-            "🔍 Country Explorer",
-            "Select a GCC nation for deep-dive historical analysis, all-indicators snapshot, and AI intelligence assessment."
+            T("nav_country", _lang),
+            "اختر دولة خليجية لتحليل تاريخي معمق ورؤى ذكية." if is_ar(_lang) else "Select a GCC nation for deep-dive historical analysis, all-indicators snapshot, and AI intelligence assessment."
         ),
         unsafe_allow_html=True,
     )
@@ -1397,14 +1413,17 @@ def page_country_explorer():
     with col_side:
         _section(T("sec_all_indicators", _lang))
         snap_rows = []
+        _col_ind   = "المؤشر"   if is_ar(_lang) else "Indicator"
+        _col_val   = "القيمة"   if is_ar(_lang) else "Value"
+        _col_trend = "الاتجاه"  if is_ar(_lang) else "Trend"
         for k, m in gcc_data.INDICATORS.items():
             ts = gcc_data.get_trend_stats(country, k)
             snap_rows.append({
-                "Indicator": m["name"][:30],
-                "Value": f"{ts['latest']:.1f}%",
-                "Trend": "↑" if ts["improving"] else "↓",
+                _col_ind:   m["name"][:30],
+                _col_val:   f"{ts['latest']:.1f}%",
+                _col_trend: "↑" if ts["improving"] else "↓",
             })
-        st.dataframe(pd.DataFrame(snap_rows).set_index("Indicator"), use_container_width=True)
+        st.dataframe(pd.DataFrame(snap_rows).set_index(_col_ind), use_container_width=True)
 
     # ── Year-on-year bar chart ────────────────────────────────────────────────
     _section(T("sec_yoy_changes", _lang))
@@ -1478,8 +1497,8 @@ def page_country_explorer():
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown(
         _next_step_cta(
-            "📈 Forecast Center",
-            f"Run an AI forecast for {country} to generate predictive intelligence and model confidence scores."
+            T("nav_forecast", _lang),
+            f"شغّل تنبؤ الذكاء الاصطناعي لـ{country} لتوليد رؤى تنبؤية ودرجات ثقة النموذج." if is_ar(_lang) else f"Run an AI forecast for {country} to generate predictive intelligence and model confidence scores."
         ),
         unsafe_allow_html=True,
     )
@@ -1611,7 +1630,12 @@ def page_forecast_center():
             unsafe_allow_html=True,
         )
 
-        tab1, tab2, tab3 = st.tabs(["📈 Forecast Chart", "📊 Model Comparison", "📋 Forecast Table"])
+        _fc_tabs = (
+            ["📈 مخطط التنبؤ", "📊 مقارنة النماذج", "📋 جدول التنبؤ"]
+            if is_ar(_lang) else
+            ["📈 Forecast Chart", "📊 Model Comparison", "📋 Forecast Table"]
+        )
+        tab1, tab2, tab3 = st.tabs(_fc_tabs)
 
         with tab1:
             fig = go.Figure(layout=_plotly_base(f"{gcc_data.COUNTRIES[country]['flag']} {country} — {meta['name']} Forecast"))
@@ -1694,8 +1718,8 @@ def page_forecast_center():
         st.markdown("<br>", unsafe_allow_html=True)
         st.markdown(
             _next_step_cta(
-                "🤖 AI Insights",
-                f"Generate AI strategic intelligence — risk classification, bilingual analysis, and policy recommendations for {country}."
+                T("nav_insights", _lang),
+                f"ولّد الذكاء الاستراتيجي — تصنيف المخاطر والتحليل الثنائي اللغة والتوصيات لـ{country}." if is_ar(_lang) else f"Generate AI strategic intelligence — risk classification, bilingual analysis, and policy recommendations for {country}."
             ),
             unsafe_allow_html=True,
         )
@@ -1913,8 +1937,8 @@ def page_ai_insights():
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown(
         _next_step_cta(
-            "⚙️ Scenario Simulator",
-            f"Model policy scenarios and simulate alternative futures for {country} using AI-powered impact analysis."
+            T("nav_scenario", _lang),
+            f"نمذجة سيناريوهات السياسات ومحاكاة المستقبل لـ{country} بالذكاء الاصطناعي." if is_ar(_lang) else f"Model policy scenarios and simulate alternative futures for {country} using AI-powered impact analysis."
         ),
         unsafe_allow_html=True,
     )
@@ -2278,8 +2302,8 @@ def page_scenario_simulator():
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown(
         _next_step_cta(
-            "🔬 AI Transparency Center",
-            "Understand how the AI generates forecasts — model reliability, driver intelligence, and responsible AI methodology."
+            T("nav_explain", _lang),
+            "افهم كيف يولّد الذكاء الاصطناعي التنبؤات — موثوقية النموذج وذكاء العوامل والمنهجية المسؤولة." if is_ar(_lang) else "Understand how the AI generates forecasts — model reliability, driver intelligence, and responsible AI methodology."
         ),
         unsafe_allow_html=True,
     )
